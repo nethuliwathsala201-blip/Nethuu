@@ -1,0 +1,123 @@
+:root {
+    --bg-dark: #0f172a;
+    --glass-bg: rgba(255, 255, 255, 0.05);
+    --neon-blue: #00f2ff;
+    --gold: #fbbf24;
+}
+
+body {
+    margin: 0;
+    font-family: 'Inter', sans-serif;
+    background-color: var(--bg-dark);
+    color: white;
+    overflow-x: hidden;
+}
+
+/* Background Map Placeholder */
+#map-bg {
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    z-index: -1;
+    background: radial-gradient(circle, #1e293b 0%, #0f172a 100%);
+    /* පස්සේ මැප් එක මෙතනට ලෝඩ් කරනවා */
+}
+
+.main-container {
+    padding: 20px;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    min-height: 100vh;
+}
+
+.logo {
+    letter-spacing: 5px;
+    font-weight: 300;
+    text-shadow: 0 0 10px rgba(0, 242, 255, 0.5);
+}
+
+.glass {
+    background: var(--glass-bg);
+    backdrop-filter: blur(15px);
+    border: 1px solid rgba(255, 255, 255, 0.1);
+    border-radius: 20px;
+    box-shadow: 0 8px 32px 0 rgba(0, 0, 0, 0.37);
+}
+
+.dream-box {
+    width: 90%;
+    max-width: 600px;
+    padding: 25px;
+    margin-top: 50px;
+}
+
+textarea {
+    width: 100%;
+    height: 100px;
+    background: transparent;
+    border: none;
+    border-bottom: 2px solid var(--gold);
+    color: white;
+    font-size: 1.2rem;
+    outline: none;
+    resize: none;
+}
+
+.controls {
+    margin-top: 20px;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+}
+
+#pin-btn {
+    background: white;
+    color: black;
+    border: none;
+    padding: 15px 35px;
+    border-radius: 50px;
+    font-weight: bold;
+    cursor: pointer;
+    box-shadow: 0 0 20px rgba(255, 255, 255, 0.4);
+    transition: 0.3s;
+}
+
+#pin-btn:hover {
+    background: var(--neon-blue);
+    transform: scale(1.05);
+}
+
+/* Modal Styling */
+.modal-overlay {
+    position: fixed;
+    top:0; left:0; width:100%; height:100%;
+    background: rgba(0,0,0,0.8);
+    display: flex; justify-content: center; align-items: center;
+    z-index: 100;
+}
+
+.hidden { display: none; }
+
+.modal-card {
+    padding: 30px;
+    max-width: 400px;
+    text-align: center;
+}
+
+.modal-ad-box {
+    margin: 20px 0;
+    padding: 10px;
+    border: 1px dashed #555;
+}
+
+.finish-btn {
+    background: var(--gold);
+    border: none;
+    padding: 12px 25px;
+    border-radius: 10px;
+    cursor: pointer;
+    font-weight: bold;
+}
