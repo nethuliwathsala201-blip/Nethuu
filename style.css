@@ -1,201 +1,182 @@
-:root {
-    --bg-dark: #0f172a;
-    --glass-bg: rgba(255, 255, 255, 0.05);
-    --neon-blue: #00f2ff;
-    --gold: #fbbf24;
-}
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Global Bucket List — Dream. Pin. Connect.</title>
+  <meta name="description" content="A world map where every dream finds its place. Pin your life goals and connect with dreamers across the globe." />
 
-* {
-    box-sizing: border-box;
-}
+  <!-- Fonts -->
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link href="https://fonts.googleapis.com/css2?family=Syne:wght@400;600;700;800&family=DM+Sans:wght@300;400;500&display=swap" rel="stylesheet" />
 
-body {
-    margin: 0;
-    font-family: 'Inter', sans-serif;
-    background-color: var(--bg-dark);
-    color: white;
-    overflow-x: hidden;
-    min-height: 100vh;
-    background: transparent;
-}
+  <!-- Leaflet CSS -->
+  <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
 
-/* Leaflet Map Styling */
-#map {
-    position: fixed;
-    top: 0;
-    left: 0;
-    width: 100%;
-    height: 100%;
-    z-index: 0; /* Map is at the bottom */
-}
+  <!-- App CSS -->
+  <link rel="stylesheet" href="style.css" />
+</head>
+<body>
 
-/* Global Overlays */
-.main-container {
-    position: relative;
-    z-index: 2; /* UI is above the map */
-    padding: 20px;
-    display: flex;
-    flex-direction: column;
-    align-items: center;
-}
+  <!-- ═══════════════════════════════════ HEADER ═══════════════════════════════════ -->
+  <header class="app-header">
+    <div class="header-left">
+      <div class="logo">
+        <span class="logo-icon">◈</span>
+        <span class="logo-text">Global<em>Bucket</em>List</span>
+      </div>
+    </div>
 
-.header {
-    text-align: center;
-    margin-top: 20px;
-}
+    <!-- Live Pulse Widget -->
+    <div class="live-pulse-widget">
+      <span class="pulse-dot"></span>
+      <span class="pulse-label">Souls Dreaming Now</span>
+      <span class="pulse-count" id="soulCount">—</span>
+    </div>
 
-.logo {
-    letter-spacing: 5px;
-    font-weight: 300;
-    margin: 0;
-    text-shadow: 0 0 10px rgba(0, 242, 255, 0.5);
-}
+    <!-- Top Banner Ad Placeholder -->
+    <div class="ad-placeholder ad-top-banner" id="adTopBanner">
+      <span class="ad-label">Advertisement</span>
+      <div class="ad-inner">
+        <!-- Adsterra Top Banner 728×90 -->
+        <p>[ Adsterra Banner 728×90 ]</p>
+      </div>
+    </div>
+  </header>
 
-.live-status {
-    display: flex;
-    align-items: center;
-    gap: 10px;
-    font-size: 0.8rem;
-    margin-top: 5px;
-    opacity: 0.8;
-}
+  <!-- ═══════════════════════════════════ MAP ═══════════════════════════════════ -->
+  <div id="map"></div>
 
-.pulse {
-    width: 10px;
-    height: 10px;
-    background-color: #10b981; /* Green */
-    border-radius: 50%;
-    animation: pulse-animation 1.5s infinite;
-}
+  <!-- ═══════════════════════════════════ FLOATING INPUT CARD ═══════════════════════════════════ -->
+  <div class="dream-card glass" id="dreamCard">
+    <div class="dream-card-header">
+      <h2>Pin Your Dream</h2>
+      <p class="dream-card-sub">Where in the world does your heart point?</p>
+    </div>
 
-@keyframes pulse-animation {
-    0% { box-shadow: 0 0 0 0 rgba(16, 185, 129, 0.7); }
-    70% { box-shadow: 0 0 0 10px rgba(16, 185, 129, 0); }
-    100% { box-shadow: 0 0 0 0 rgba(16, 185, 129, 0); }
-}
+    <div class="field-group">
+      <label for="dreamText">What's your biggest dream?</label>
+      <textarea id="dreamText" placeholder="I want to stand on the summit of Everest at sunrise…" rows="3" maxlength="280"></textarea>
+      <span class="char-count"><span id="charUsed">0</span>/280</span>
+    </div>
 
-.glass {
-    background: var(--glass-bg);
-    backdrop-filter: blur(15px);
-    border: 1px solid rgba(255, 255, 255, 0.1);
-    border-radius: 20px;
-    box-shadow: 0 8px 32px 0 rgba(0, 0, 0, 0.37);
-}
+    <div class="field-row">
+      <div class="field-group half">
+        <label for="categorySelect">Category</label>
+        <select id="categorySelect">
+          <option value="Travel">✈ Travel</option>
+          <option value="Career">💼 Career</option>
+          <option value="Love">❤ Love</option>
+          <option value="Money">💰 Money</option>
+          <option value="Health">🌿 Health</option>
+          <option value="Adventure">⚡ Adventure</option>
+        </select>
+      </div>
 
-.dream-box {
-    width: 90%;
-    max-width: 600px;
-    padding: 25px;
-    margin-top: 50px;
-}
+      <div class="field-group half">
+        <label for="goalYear">Goal Year</label>
+        <input type="number" id="goalYear" placeholder="2027" min="2025" max="2099" />
+      </div>
+    </div>
 
-textarea {
-    width: 100%;
-    height: 100px;
-    background: transparent;
-    border: none;
-    border-bottom: 2px solid var(--gold);
-    color: white;
-    font-size: 1.2rem;
-    outline: none;
-    resize: none;
-    padding: 5px 0;
-}
+    <!-- Anonymous Toggle -->
+    <div class="toggle-row">
+      <div class="toggle-info">
+        <span class="toggle-title">👻 Ghost Mode</span>
+        <span class="toggle-sub">Post anonymously</span>
+      </div>
+      <label class="toggle-switch">
+        <input type="checkbox" id="anonymousToggle" checked />
+        <span class="toggle-track"></span>
+      </label>
+    </div>
 
-.controls {
-    margin-top: 20px;
-    display: flex;
-    justify-content: space-between;
-    align-items: center;
-    flex-wrap: wrap;
-    gap: 15px;
-}
+    <button class="btn-pin" id="pinItBtn">
+      <span class="btn-icon">◈</span>
+      PIN IT TO THE WORLD
+    </button>
+  </div>
 
-.options {
-    display: flex;
-    align-items: center;
-    gap: 15px;
-}
+  <!-- ═══════════════════════════════════ LIVE SIDEBAR ═══════════════════════════════════ -->
+  <aside class="sidebar glass" id="sidebar">
+    <div class="sidebar-header">
+      <h3>Live Dream Feed</h3>
+      <span class="sidebar-badge" id="totalPins">0 dreams</span>
+    </div>
 
-select {
-    background: var(--glass-bg);
-    color: white;
-    border: 1px solid rgba(255, 255, 255, 0.2);
-    padding: 8px;
-    border-radius: 5px;
-}
+    <div class="feed-list" id="feedList">
+      <!-- Populated by JS -->
+    </div>
 
-.anon-label {
-    font-size: 0.8rem;
-    display: flex;
-    align-items: center;
-    gap: 5px;
-    cursor: pointer;
-}
+    <!-- Sidebar Ad Placeholder -->
+    <div class="ad-placeholder ad-sidebar" id="adSidebar">
+      <span class="ad-label">Advertisement</span>
+      <div class="ad-inner">
+        <!-- Adsterra Sidebar 160×600 -->
+        <p>[ Adsterra 160×600 ]</p>
+      </div>
+    </div>
+  </aside>
 
-#pin-btn {
-    background: white;
-    color: black;
-    border: none;
-    padding: 15px 35px;
-    border-radius: 50px;
-    font-weight: bold;
-    cursor: pointer;
-    box-shadow: 0 0 20px rgba(255, 255, 255, 0.4);
-    transition: 0.3s;
-}
+  <!-- Sidebar Toggle (mobile) -->
+  <button class="sidebar-toggle" id="sidebarToggle" aria-label="Toggle feed">
+    <span>◈</span>
+  </button>
 
-#pin-btn:hover {
-    background: var(--neon-blue);
-    transform: scale(1.05);
-}
+  <!-- ═══════════════════════════════════ DATA MODAL ═══════════════════════════════════ -->
+  <div class="modal-overlay" id="modalOverlay">
+    <div class="modal glass" id="dataModal">
+      <button class="modal-close" id="modalClose">✕</button>
 
-/* Modal Styling */
-.modal-overlay {
-    position: fixed;
-    top: 0; left: 0; width: 100%; height: 100%;
-    background: rgba(0, 0, 0, 0.8);
-    display: flex; justify-content: center; align-items: center;
-    z-index: 100; /* Modal is always on top */
-}
+      <div class="modal-header">
+        <div class="modal-icon">✦</div>
+        <h2>Almost There, Dreamer</h2>
+        <p>Help us make this dream universe better — it only takes 10 seconds.</p>
+      </div>
 
-.hidden { display: none !important; }
+      <div class="modal-fields">
+        <div class="field-group">
+          <label for="userAge">Your Age</label>
+          <input type="number" id="userAge" placeholder="25" min="5" max="120" />
+        </div>
 
-.modal-content {
-    padding: 30px;
-    max-width: 400px;
-    width: 90%;
-    text-align: center;
-}
+        <div class="field-group">
+          <label>Your Interests <span class="optional">(pick a few)</span></label>
+          <div class="interest-chips" id="interestChips">
+            <button class="chip" data-val="tech">Tech</button>
+            <button class="chip" data-val="art">Art</button>
+            <button class="chip" data-val="travel">Travel</button>
+            <button class="chip" data-val="music">Music</button>
+            <button class="chip" data-val="fitness">Fitness</button>
+            <button class="chip" data-val="food">Food</button>
+            <button class="chip" data-val="finance">Finance</button>
+            <button class="chip" data-val="spirituality">Spirit</button>
+          </div>
+        </div>
+      </div>
 
-.input-group {
-    display: flex;
-    flex-direction: column;
-    gap: 10px;
-    margin-top: 20px;
-}
+      <!-- Modal Ad Placeholder -->
+      <div class="ad-placeholder ad-modal" id="adModal">
+        <span class="ad-label">Advertisement</span>
+        <div class="ad-inner">
+          <!-- Adsterra Modal Banner 300×250 -->
+          <p>[ Adsterra 300×250 ]</p>
+        </div>
+      </div>
 
-.input-group input {
-    background: rgba(255, 255, 255, 0.1);
-    border: none;
-    padding: 12px;
-    border-radius: 5px;
-    color: white;
-}
+      <button class="btn-pin btn-launch" id="launchDreamBtn">
+        <span class="btn-icon">✦</span>
+        LAUNCH MY DREAM
+      </button>
+    </div>
+  </div>
 
-.modal-ad-box {
-    margin: 20px 0;
-    padding: 10px;
-    border: 1px dashed #555;
-}
+  <!-- ═══════════════════════════════════ TOAST ═══════════════════════════════════ -->
+  <div class="toast" id="toast"></div>
 
-.finish-btn {
-    background: var(--gold);
-    color: black;
-    border: none;
-    padding: 12px 25px;
-    border-radius: 10px;
-    cursor: pointer;
-    font-weight: bold;
-    width: 100%;
-}
+  <!-- Leaflet JS -->
+  <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
+  <!-- App JS -->
+  <script src="app.js"></script>
+</body>
+</html>
