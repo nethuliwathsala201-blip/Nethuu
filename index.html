@@ -3,187 +3,74 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>The Global Bucket List | Share Your Dream</title>
-    
-    <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
+    <title>Global Bucket List | Share Your Dreams</title>
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;600&display=swap" rel="stylesheet">
-    
-    <style>
-        * {
-            margin: 0;
-            padding: 0;
-            box-sizing: border-box;
-        }
-
-        body, html {
-            height: 100%;
-            background-color: #0b0d11;
-            font-family: 'Inter', sans-serif;
-            color: white;
-            overflow: hidden;
-        }
-
-        /* The Map */
-        #map {
-            height: 100vh;
-            width: 100vw;
-            z-index: 1;
-        }
-
-        /* Overlay UI */
-        .ui-container {
-            position: absolute;
-            top: 30px;
-            left: 50%;
-            transform: translateX(-50%);
-            z-index: 1000;
-            width: 90%;
-            max-width: 600px;
-            text-align: center;
-        }
-
-        h1 {
-            font-size: 24px;
-            font-weight: 300;
-            letter-spacing: 5px;
-            margin-bottom: 20px;
-            text-transform: uppercase;
-            text-shadow: 0 0 15px rgba(255, 215, 0, 0.4);
-        }
-
-        .input-box {
-            background: rgba(15, 17, 21, 0.85);
-            padding: 20px;
-            border-radius: 20px;
-            border: 1px solid rgba(255, 215, 0, 0.2);
-            backdrop-filter: blur(15px);
-            box-shadow: 0 10px 30px rgba(0,0,0,0.5);
-            display: flex;
-            gap: 10px;
-        }
-
-        input {
-            flex: 1;
-            background: transparent;
-            border: none;
-            border-bottom: 1px solid rgba(255, 215, 0, 0.5);
-            color: white;
-            padding: 10px;
-            font-size: 16px;
-            outline: none;
-        }
-
-        button {
-            background: #ffd700;
-            color: #000;
-            border: none;
-            padding: 10px 25px;
-            border-radius: 12px;
-            font-weight: 600;
-            cursor: pointer;
-            transition: all 0.3s ease;
-        }
-
-        button:hover {
-            background: #fff;
-            transform: translateY(-2px);
-            box-shadow: 0 5px 15px rgba(255, 215, 0, 0.4);
-        }
-
-        /* Custom Golden Pulse Animation for Markers */
-        .gold-star {
-            background: #ffd700;
-            border-radius: 50%;
-            box-shadow: 0 0 0 0 rgba(255, 215, 0, 1);
-            animation: pulse 2s infinite;
-        }
-
-        @keyframes pulse {
-            0% { transform: scale(0.95); box-shadow: 0 0 0 0 rgba(255, 215, 0, 0.7); }
-            70% { transform: scale(1); box-shadow: 0 0 0 15px rgba(255, 215, 0, 0); }
-            100% { transform: scale(0.95); box-shadow: 0 0 0 0 rgba(255, 215, 0, 0); }
-        }
-
-        /* Leaflet Popup Styling */
-        .leaflet-popup-content-wrapper {
-            background: #14161a;
-            color: white;
-            border-radius: 10px;
-            border: 1px solid #ffd700;
-        }
-        .leaflet-popup-tip { background: #ffd700; }
-    </style>
+    <link rel="stylesheet" href="style.css">
 </head>
 <body>
 
-    <div class="ui-container">
-        <h1>Global Bucket List</h1>
-        <div class="input-box">
-            <input type="text" id="dreamInput" placeholder="What's your biggest dream?">
-            <button onclick="postDream()">PIN IT</button>
+    <div id="map-bg"></div>
+
+    <main class="main-container">
+        
+        <header class="header">
+            <h1 class="logo">GLOBAL BUCKET LIST</h1>
+            <div class="live-status">
+                <span class="pulse"></span>
+                <p>1,240 Souls Dreaming Now</p>
+            </div>
+        </header>
+
+        <section class="dream-box glass">
+            <textarea id="dream-input" placeholder="What's your biggest dream?"></textarea>
+            
+            <div class="controls">
+                <div class="options">
+                    <select id="category">
+                        <option value="travel">🌍 Travel</option>
+                        <option value="career">🎓 Career</option>
+                        <option value="love">❤️ Love</option>
+                        <option value="money">💰 Money</option>
+                    </select>
+                    
+                    <label class="anon-label">
+                        <input type="checkbox" id="anon-check">
+                        <span>Ghost Mode (Anonymous)</span>
+                    </label>
+                </div>
+                
+                <button id="pin-btn" onclick="showModal()">PIN IT</button>
+            </div>
+        </section>
+
+        <aside class="ad-sidebar glass">
+            <p>Sponsored</p>
+            <div class="ad-placeholder">Ad Space</div>
+        </aside>
+
+    </main>
+
+    <div id="user-modal" class="modal-overlay hidden">
+        <div class="modal-card glass">
+            <h2>Personalize Your Journey</h2>
+            <p>Tell us a bit about you to connect with similar dreams.</p>
+            
+            <div class="input-group">
+                <input type="number" placeholder="Your Age">
+                <input type="text" placeholder="Interests (e.g. Tech, Music)">
+            </div>
+
+            <div class="modal-ad-box">
+                <p>Trending Now</p>
+                <div class="ad-banner">
+                    Adsterra 300x250
+                </div>
+            </div>
+
+            <button class="finish-btn" onclick="closeModal()">Explore The World</button>
         </div>
     </div>
 
-    <div id="map"></div>
-
-    <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
-
-    <script>
-        // 1. Initialize the Dark Map
-        var map = L.map('map', {
-            zoomControl: false,
-            attributionControl: false
-        }).setView([20, 0], 2);
-
-        // CartoDB Dark Matter Tiles (ලස්සන කළු සිතියම)
-        L.tileLayer('https://{s}.basemaps.cartocdn.com/dark_all/{z}/{x}/{y}{r}.png', {
-            maxZoom: 15
-        }).addTo(map);
-
-        // 2. Post Dream Function with Real Location
-        function postDream() {
-            const dreamText = document.getElementById('dreamInput').value;
-            if (dreamText.trim() === "") {
-                alert("Please write your dream first!");
-                return;
-            }
-
-            // Get Real Location
-            if (navigator.geolocation) {
-                navigator.geolocation.getCurrentPosition(function(position) {
-                    const lat = position.coords.latitude;
-                    const lng = position.coords.longitude;
-
-                    // Smoothly fly to the user's location
-                    map.flyTo([lat, lng], 6, { duration: 2 });
-
-                    // Create the golden pulse marker
-                    const marker = L.circleMarker([lat, lng], {
-                        radius: 8,
-                        className: 'gold-star',
-                        fillOpacity: 1,
-                        color: '#fff',
-                        weight: 2
-                    }).addTo(map);
-
-                    // Add a nice popup
-                    marker.bindPopup(`
-                        <div style="text-align: center;">
-                            <p style="font-size: 14px; margin-bottom: 5px; color: #aaa;">A dream from your area:</p>
-                            <p style="font-size: 18px; font-weight: bold;">"${dreamText}"</p>
-                        </div>
-                    `).openPopup();
-
-                    // Clear input
-                    document.getElementById('dreamInput').value = "";
-
-                }, function(error) {
-                    alert("Location access denied. We can't pin your dream accurately without it!");
-                });
-            } else {
-                alert("Your browser doesn't support location services.");
-            }
-        }
-    </script>
+    <script src="script.js"></script>
 </body>
 </html>
