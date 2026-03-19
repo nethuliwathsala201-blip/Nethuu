@@ -4,179 +4,424 @@
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <title>Global Bucket List — Dream. Pin. Connect.</title>
-  <meta name="description" content="A world map where every dream finds its place. Pin your life goals and connect with dreamers across the globe." />
-
-  <!-- Fonts -->
+  <meta name="description" content="A world map where every dream finds its place." />
   <link rel="preconnect" href="https://fonts.googleapis.com" />
   <link href="https://fonts.googleapis.com/css2?family=Syne:wght@400;600;700;800&family=DM+Sans:wght@300;400;500&display=swap" rel="stylesheet" />
-
-  <!-- Leaflet CSS -->
   <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
+  <style>
+:root{--bg:#0f172a;--bg2:#0d1526;--surf:rgba(255,255,255,0.04);--bord:rgba(0,242,255,0.15);--bordh:rgba(0,242,255,0.4);--neon:#00f2ff;--neond:rgba(0,242,255,0.18);--neong:0 0 16px rgba(0,242,255,.55),0 0 40px rgba(0,242,255,.2);--gold:#fbbf24;--goldg:0 0 16px rgba(251,191,36,.55);--txt:#e2e8f0;--txtd:#64748b;--txts:#94a3b8;--fd:'Syne',sans-serif;--fb:'DM Sans',sans-serif;--r:14px;--rs:8px;--bl:15px;--hh:64px;--cw:340px;--sw:290px}
+*,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
+html,body{height:100%;overflow:hidden;background:var(--bg);color:var(--txt);font-family:var(--fb);font-size:15px;-webkit-font-smoothing:antialiased}
+body::before{content:'';position:fixed;inset:0;background:url("data:image/svg+xml,%3Csvg viewBox='0 0 200 200' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='.75' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)' opacity='.04'/%3E%3C/svg%3E");pointer-events:none;z-index:998;opacity:.5}
+.glass{background:var(--surf);backdrop-filter:blur(var(--bl));-webkit-backdrop-filter:blur(var(--bl));border:1px solid var(--bord);border-radius:var(--r)}
 
-  <!-- App CSS -->
-  <link rel="stylesheet" href="style.css" />
+/* HEADER */
+.app-header{position:fixed;top:0;left:0;right:0;height:var(--hh);z-index:200;display:flex;align-items:center;gap:20px;padding:0 20px;background:rgba(13,21,38,.92);backdrop-filter:blur(20px);border-bottom:1px solid var(--bord)}
+.logo{display:flex;align-items:center;gap:10px;flex-shrink:0}
+.logo-icon{font-size:22px;color:var(--neon);filter:drop-shadow(0 0 8px var(--neon));animation:lp 3s ease-in-out infinite}
+@keyframes lp{0%,100%{filter:drop-shadow(0 0 6px var(--neon))}50%{filter:drop-shadow(0 0 18px var(--neon)) drop-shadow(0 0 32px rgba(0,242,255,.4))}}
+.logo-text{font-family:var(--fd);font-size:18px;font-weight:800;letter-spacing:-.02em}
+.logo-text em{font-style:normal;color:var(--neon)}
+.lpw{display:flex;align-items:center;gap:10px;margin-left:auto;background:var(--neond);border:1px solid var(--bord);border-radius:50px;padding:6px 16px;font-family:var(--fd);font-size:13px}
+.pdot{width:8px;height:8px;border-radius:50%;background:var(--neon);box-shadow:0 0 8px var(--neon);animation:bl 1.4s ease-in-out infinite}
+@keyframes bl{0%,100%{opacity:1;transform:scale(1)}50%{opacity:.4;transform:scale(.6)}}
+.plbl{color:var(--txts)}
+.pcnt{color:var(--neon);font-weight:700;font-size:15px;min-width:52px;text-align:right;text-shadow:0 0 12px var(--neon)}
+.ad-top{margin-left:16px;flex-shrink:0}
+
+/* MAP */
+#map{position:fixed;inset:var(--hh) 0 0 0;z-index:0}
+.leaflet-tile-pane{filter:brightness(.55) saturate(.25) hue-rotate(195deg)}
+.leaflet-container{background:var(--bg2);font-family:var(--fb)}
+.leaflet-control-zoom a{background:rgba(13,21,38,.9)!important;backdrop-filter:blur(10px)!important;color:var(--neon)!important;border-color:var(--bord)!important;font-weight:700}
+.leaflet-control-zoom a:hover{background:var(--neond)!important}
+.leaflet-control-attribution{display:none!important}
+.leaflet-popup-content-wrapper{background:rgba(13,21,38,.95)!important;backdrop-filter:blur(16px)!important;border:1px solid var(--bord)!important;border-radius:var(--r)!important;box-shadow:0 0 30px rgba(0,242,255,.15)!important;color:var(--txt)!important;font-family:var(--fb)!important;padding:0!important}
+.leaflet-popup-content{margin:0!important}
+.leaflet-popup-tip{background:rgba(13,21,38,.95)!important}
+.leaflet-popup-close-button{color:var(--txtd)!important;font-size:18px!important;right:10px!important;top:8px!important;z-index:10}
+.pi{padding:16px 18px 14px;min-width:200px;max-width:260px}
+.pc{font-size:11px;font-weight:700;letter-spacing:.12em;text-transform:uppercase;margin-bottom:7px;display:flex;align-items:center;gap:5px}
+.pcd{width:8px;height:8px;border-radius:50%;display:inline-block;flex-shrink:0}
+.pd{font-size:13.5px;line-height:1.55;color:var(--txt);margin-bottom:10px}
+.pm{display:flex;justify-content:space-between;font-size:11px;color:var(--txtd)}
+.py{color:var(--gold);font-weight:600}
+
+/* DREAM CARD */
+.dream-card{position:fixed;bottom:24px;left:24px;width:var(--cw);z-index:100;padding:20px 22px 22px;box-shadow:0 20px 60px rgba(0,0,0,.65),0 0 0 1px var(--bord),inset 0 1px 0 rgba(255,255,255,.05);transition:box-shadow .3s}
+.dream-card:hover{box-shadow:0 24px 60px rgba(0,0,0,.7),0 0 0 1px var(--bordh),var(--neong),inset 0 1px 0 rgba(255,255,255,.07)}
+.dch{margin-bottom:14px}
+.dch h2{font-family:var(--fd);font-size:19px;font-weight:800;letter-spacing:-.01em}
+.dcs{font-size:12px;color:var(--txts);margin-top:3px}
+.fg{margin-bottom:12px;position:relative}
+.fg label{display:block;font-size:10px;font-weight:600;letter-spacing:.1em;text-transform:uppercase;color:var(--txts);margin-bottom:5px}
+textarea,select,input[type=number]{width:100%;background:rgba(0,0,0,.35);border:1px solid var(--bord);border-radius:var(--rs);padding:9px 12px;color:var(--txt);font-family:var(--fb);font-size:14px;outline:none;transition:border-color .2s,box-shadow .2s;resize:none}
+textarea:focus,select:focus,input:focus{border-color:var(--neon);box-shadow:0 0 0 3px rgba(0,242,255,.1)}
+textarea{line-height:1.5}
+select{cursor:pointer;appearance:none;background-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='10' height='6'%3E%3Cpath fill='%2364748b' d='M0 0l5 6 5-6z'/%3E%3C/svg%3E");background-repeat:no-repeat;background-position:right 12px center;padding-right:32px}
+select option{background:#1e293b}
+.cc{position:absolute;bottom:-17px;right:2px;font-size:10px;color:var(--txtd)}
+.fr{display:flex;gap:10px}
+.fr .half{flex:1}
+.tr{display:flex;align-items:center;justify-content:space-between;padding:9px 12px;background:rgba(0,0,0,.2);border:1px solid var(--bord);border-radius:var(--rs);margin-bottom:14px}
+.tt{font-size:13px;font-weight:500}
+.ts{display:block;font-size:11px;color:var(--txtd);margin-top:2px}
+.tsw{position:relative;display:inline-block;width:40px;height:22px}
+.tsw input{opacity:0;width:0;height:0}
+.ttr{position:absolute;inset:0;background:rgba(0,0,0,.4);border:1px solid var(--bord);border-radius:50px;cursor:pointer;transition:.3s}
+.ttr::before{content:'';position:absolute;width:16px;height:16px;border-radius:50%;background:var(--txtd);top:2px;left:2px;transition:.3s}
+.tsw input:checked+.ttr{background:var(--neond);border-color:var(--neon);box-shadow:0 0 10px rgba(0,242,255,.3)}
+.tsw input:checked+.ttr::before{transform:translateX(18px);background:var(--neon)}
+.btn-pin{width:100%;padding:13px 20px;background:linear-gradient(135deg,#00f2ff 0%,#0090bb 100%);border:none;border-radius:var(--rs);color:#05101f;font-family:var(--fd);font-size:13px;font-weight:800;letter-spacing:.1em;cursor:pointer;display:flex;align-items:center;justify-content:center;gap:8px;transition:transform .15s,box-shadow .2s,filter .2s;box-shadow:0 4px 20px rgba(0,242,255,.4)}
+.btn-pin:hover{transform:translateY(-2px);box-shadow:0 8px 30px rgba(0,242,255,.55),0 0 0 1px rgba(0,242,255,.4);filter:brightness(1.08)}
+.btn-pin:active{transform:translateY(0)}
+.bi{font-size:14px}
+
+/* SIDEBAR */
+.sidebar{position:fixed;top:calc(var(--hh) + 14px);right:14px;width:var(--sw);max-height:calc(100vh - var(--hh) - 28px);z-index:200;display:flex;flex-direction:column;overflow:hidden;transition:transform .35s cubic-bezier(.4,0,.2,1)}
+.sbh{display:flex;align-items:center;justify-content:space-between;padding:14px 16px 12px;border-bottom:1px solid var(--bord);flex-shrink:0}
+.sbh h3{font-family:var(--fd);font-size:13px;font-weight:700}
+.sbb{font-size:11px;background:var(--neond);border:1px solid var(--bord);border-radius:50px;padding:2px 10px;color:var(--neon);font-weight:600}
+.fl{flex:1;overflow-y:auto;padding:8px;display:flex;flex-direction:column;gap:7px;scrollbar-width:thin;scrollbar-color:var(--bord) transparent}
+.fl::-webkit-scrollbar{width:3px}
+.fl::-webkit-scrollbar-thumb{background:var(--bord);border-radius:3px}
+.fi{padding:10px 12px;background:rgba(0,0,0,.2);border:1px solid var(--bord);border-radius:var(--rs);transition:border-color .2s,background .2s;animation:fs .4s cubic-bezier(.4,0,.2,1)}
+@keyframes fs{from{opacity:0;transform:translateX(16px)}to{opacity:1;transform:translateX(0)}}
+.fi:hover{border-color:var(--bordh);background:rgba(0,242,255,.03)}
+.fcd{display:inline-block;width:7px;height:7px;border-radius:50%;margin-right:5px;vertical-align:middle}
+.fcl{font-size:10px;font-weight:700;letter-spacing:.1em;text-transform:uppercase;vertical-align:middle}
+.fd2{font-size:12px;color:var(--txts);line-height:1.5;margin-top:5px;display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical;overflow:hidden}
+.fm{display:flex;justify-content:space-between;margin-top:6px;font-size:10px;color:var(--txtd)}
+.fy{color:var(--gold);font-weight:600}
+.ad-sb{flex-shrink:0;margin:6px 8px 8px}
+.stog{display:none;position:fixed;top:calc(var(--hh) + 10px);right:12px;z-index:201;width:40px;height:40px;border-radius:50%;background:var(--neon);border:none;color:#05101f;font-size:15px;cursor:pointer;box-shadow:0 0 18px rgba(0,242,255,.5);align-items:center;justify-content:center;font-weight:700}
+
+/* PINS */
+.cp{position:relative;display:flex;align-items:center;justify-content:center;width:30px;height:30px}
+.pdot2{width:12px;height:12px;border-radius:50%;border:2px solid rgba(255,255,255,.5);position:relative;z-index:2}
+.pr{position:absolute;top:50%;left:50%;transform:translate(-50%,-50%);border-radius:50%;border:2px solid currentColor;width:26px;height:26px;animation:pp 2.2s ease-out infinite;opacity:0}
+.pr2{animation-delay:.8s}
+@keyframes pp{0%{opacity:.85;transform:translate(-50%,-50%) scale(.4)}100%{opacity:0;transform:translate(-50%,-50%) scale(2.4)}}
+
+/* MODAL */
+.mo{position:fixed;inset:0;z-index:500;background:rgba(5,10,22,.88);backdrop-filter:blur(10px);display:flex;align-items:center;justify-content:center;padding:20px;opacity:0;pointer-events:none;transition:opacity .3s}
+.mo.active{opacity:1;pointer-events:all}
+.md{width:100%;max-width:420px;padding:30px 26px 22px;position:relative;box-shadow:0 30px 80px rgba(0,0,0,.75),0 0 0 1px var(--bord),var(--neong);transform:scale(.93) translateY(20px);transition:transform .35s cubic-bezier(.4,0,.2,1)}
+.mo.active .md{transform:scale(1) translateY(0)}
+.mc{position:absolute;top:14px;right:14px;background:rgba(0,0,0,.3);border:1px solid var(--bord);border-radius:50%;width:30px;height:30px;color:var(--txtd);font-size:13px;cursor:pointer;display:flex;align-items:center;justify-content:center;transition:color .2s,border-color .2s;line-height:1}
+.mc:hover{color:var(--neon);border-color:var(--neon)}
+.mh{text-align:center;margin-bottom:22px}
+.mi{font-size:30px;color:var(--gold);display:inline-block;animation:gg 3s ease-in-out infinite}
+@keyframes gg{0%,100%{filter:drop-shadow(0 0 6px rgba(251,191,36,.5))}50%{filter:drop-shadow(0 0 20px rgba(251,191,36,.9))}}
+.mh h2{font-family:var(--fd);font-size:21px;font-weight:800;margin:10px 0 6px;letter-spacing:-.02em}
+.mh p{font-size:13px;color:var(--txts);line-height:1.5}
+.mfs{margin-bottom:18px}
+.ics{display:flex;flex-wrap:wrap;gap:7px;margin-top:5px}
+.chip{padding:6px 13px;background:rgba(0,0,0,.35);border:1px solid var(--bord);border-radius:50px;color:var(--txts);font-family:var(--fb);font-size:12px;cursor:pointer;transition:all .2s;line-height:1}
+.chip:hover{border-color:var(--neon);color:var(--neon)}
+.chip.active{background:var(--neond);border-color:var(--neon);color:var(--neon);box-shadow:0 0 10px rgba(0,242,255,.2)}
+.ad-m{margin-bottom:18px}
+.btn-launch{background:linear-gradient(135deg,#fbbf24 0%,#d97706 100%);box-shadow:0 4px 20px rgba(251,191,36,.4);color:#05101f}
+.btn-launch:hover{box-shadow:0 8px 30px rgba(251,191,36,.55),0 0 0 1px rgba(251,191,36,.4)}
+.opt{font-size:10px;color:var(--txtd);font-weight:400;text-transform:none;letter-spacing:0}
+
+/* ADS */
+.adp{border:1px dashed rgba(251,191,36,.22);border-radius:var(--rs);background:rgba(251,191,36,.02);position:relative;overflow:hidden}
+.albl{position:absolute;top:4px;left:8px;font-size:9px;letter-spacing:.1em;text-transform:uppercase;color:rgba(251,191,36,.35);font-weight:600}
+.adin{display:flex;align-items:center;justify-content:center;color:rgba(251,191,36,.25);font-size:11px;font-style:italic}
+.ad-top .adin{height:34px;min-width:100px}
+.ad-sb .adin{height:110px}
+.ad-m .adin{height:90px}
+
+/* TOAST */
+.toast{position:fixed;bottom:24px;left:50%;transform:translateX(-50%) translateY(80px);z-index:600;background:rgba(13,21,38,.97);backdrop-filter:blur(16px);border:1px solid var(--neon);border-radius:50px;padding:10px 24px;font-size:13px;font-weight:500;color:var(--neon);box-shadow:0 0 20px rgba(0,242,255,.3);opacity:0;transition:transform .4s cubic-bezier(.4,0,.2,1),opacity .4s;white-space:nowrap;pointer-events:none}
+.toast.show{opacity:1;transform:translateX(-50%) translateY(0)}
+
+::-webkit-scrollbar{width:4px}
+::-webkit-scrollbar-thumb{background:var(--bord);border-radius:4px}
+
+/* RESPONSIVE */
+@media(max-width:900px){:root{--sw:260px}.ad-top{display:none}.lpw{padding:5px 12px;font-size:12px}}
+@media(max-width:700px){:root{--cw:calc(100vw - 32px)}.dream-card{bottom:14px;left:16px;right:16px;width:auto}.sidebar{top:var(--hh);right:0;width:100vw;max-height:55vh;border-radius:0;transform:translateY(110%)}.sidebar.open{transform:translateY(45%)}.stog{display:flex}.plbl{display:none}.logo-text{font-size:15px}}
+@media(max-width:420px){.md{padding:22px 16px 18px}.chip{font-size:11px;padding:5px 11px}}
+  </style>
 </head>
 <body>
 
-  <!-- ═══════════════════════════════════ HEADER ═══════════════════════════════════ -->
-  <header class="app-header">
-    <div class="header-left">
-      <div class="logo">
-        <span class="logo-icon">◈</span>
-        <span class="logo-text">Global<em>Bucket</em>List</span>
+<header class="app-header">
+  <div class="logo">
+    <span class="logo-icon">◈</span>
+    <span class="logo-text">Global<em>Bucket</em>List</span>
+  </div>
+  <div class="lpw">
+    <span class="pdot"></span>
+    <span class="plbl">Souls Dreaming Now</span>
+    <span class="pcnt" id="soulCount">—</span>
+  </div>
+  <div class="adp ad-top" id="adTopBanner">
+    <span class="albl">Advertisement</span>
+    <div class="adin">[ Adsterra 728×90 ]</div>
+  </div>
+</header>
+
+<div id="map"></div>
+
+<div class="dream-card glass" id="dreamCard">
+  <div class="dch">
+    <h2>Pin Your Dream</h2>
+    <p class="dcs">Where in the world does your heart point?</p>
+  </div>
+  <div class="fg">
+    <label for="dreamText">What's your biggest dream?</label>
+    <textarea id="dreamText" placeholder="I want to stand on the summit of Everest at sunrise…" rows="3" maxlength="280"></textarea>
+    <span class="cc"><span id="charUsed">0</span>/280</span>
+  </div>
+  <div class="fr">
+    <div class="fg half">
+      <label for="catSel">Category</label>
+      <select id="catSel">
+        <option value="Travel">✈ Travel</option>
+        <option value="Career">💼 Career</option>
+        <option value="Love">❤ Love</option>
+        <option value="Money">💰 Money</option>
+        <option value="Health">🌿 Health</option>
+        <option value="Adventure">⚡ Adventure</option>
+      </select>
+    </div>
+    <div class="fg half">
+      <label for="goalYear">Goal Year</label>
+      <input type="number" id="goalYear" placeholder="2027" min="2025" max="2099" />
+    </div>
+  </div>
+  <div class="tr">
+    <div>
+      <span class="tt">👻 Ghost Mode</span>
+      <span class="ts">Post anonymously</span>
+    </div>
+    <label class="tsw">
+      <input type="checkbox" id="anonToggle" checked />
+      <span class="ttr"></span>
+    </label>
+  </div>
+  <button class="btn-pin" id="pinItBtn">
+    <span class="bi">◈</span> PIN IT TO THE WORLD
+  </button>
+</div>
+
+<aside class="sidebar glass" id="sidebar">
+  <div class="sbh">
+    <h3>Live Dream Feed</h3>
+    <span class="sbb" id="totalPins">0 dreams</span>
+  </div>
+  <div class="fl" id="feedList"></div>
+  <div class="adp ad-sb">
+    <span class="albl">Advertisement</span>
+    <div class="adin">[ Adsterra 160×600 ]</div>
+  </div>
+</aside>
+
+<button class="stog" id="sidebarToggle" aria-label="Toggle feed">◈</button>
+
+<div class="mo" id="modalOverlay">
+  <div class="md glass" id="dataModal">
+    <button class="mc" id="modalClose">✕</button>
+    <div class="mh">
+      <div class="mi">✦</div>
+      <h2>Almost There, Dreamer</h2>
+      <p>Help us make this dream universe better — it only takes 10 seconds.</p>
+    </div>
+    <div class="mfs">
+      <div class="fg">
+        <label for="userAge">Your Age</label>
+        <input type="number" id="userAge" placeholder="25" min="5" max="120" />
+      </div>
+      <div class="fg">
+        <label>Your Interests <span class="opt">(pick a few)</span></label>
+        <div class="ics" id="interestChips">
+          <button class="chip" data-val="tech">Tech</button>
+          <button class="chip" data-val="art">Art</button>
+          <button class="chip" data-val="travel">Travel</button>
+          <button class="chip" data-val="music">Music</button>
+          <button class="chip" data-val="fitness">Fitness</button>
+          <button class="chip" data-val="food">Food</button>
+          <button class="chip" data-val="finance">Finance</button>
+          <button class="chip" data-val="spirit">Spirit</button>
+        </div>
       </div>
     </div>
-
-    <!-- Live Pulse Widget -->
-    <div class="live-pulse-widget">
-      <span class="pulse-dot"></span>
-      <span class="pulse-label">Souls Dreaming Now</span>
-      <span class="pulse-count" id="soulCount">—</span>
+    <div class="adp ad-m">
+      <span class="albl">Advertisement</span>
+      <div class="adin">[ Adsterra 300×250 ]</div>
     </div>
-
-    <!-- Top Banner Ad Placeholder -->
-    <div class="ad-placeholder ad-top-banner" id="adTopBanner">
-      <span class="ad-label">Advertisement</span>
-      <div class="ad-inner">
-        <!-- Adsterra Top Banner 728×90 -->
-        <p>[ Adsterra Banner 728×90 ]</p>
-      </div>
-    </div>
-  </header>
-
-  <!-- ═══════════════════════════════════ MAP ═══════════════════════════════════ -->
-  <div id="map"></div>
-
-  <!-- ═══════════════════════════════════ FLOATING INPUT CARD ═══════════════════════════════════ -->
-  <div class="dream-card glass" id="dreamCard">
-    <div class="dream-card-header">
-      <h2>Pin Your Dream</h2>
-      <p class="dream-card-sub">Where in the world does your heart point?</p>
-    </div>
-
-    <div class="field-group">
-      <label for="dreamText">What's your biggest dream?</label>
-      <textarea id="dreamText" placeholder="I want to stand on the summit of Everest at sunrise…" rows="3" maxlength="280"></textarea>
-      <span class="char-count"><span id="charUsed">0</span>/280</span>
-    </div>
-
-    <div class="field-row">
-      <div class="field-group half">
-        <label for="categorySelect">Category</label>
-        <select id="categorySelect">
-          <option value="Travel">✈ Travel</option>
-          <option value="Career">💼 Career</option>
-          <option value="Love">❤ Love</option>
-          <option value="Money">💰 Money</option>
-          <option value="Health">🌿 Health</option>
-          <option value="Adventure">⚡ Adventure</option>
-        </select>
-      </div>
-
-      <div class="field-group half">
-        <label for="goalYear">Goal Year</label>
-        <input type="number" id="goalYear" placeholder="2027" min="2025" max="2099" />
-      </div>
-    </div>
-
-    <!-- Anonymous Toggle -->
-    <div class="toggle-row">
-      <div class="toggle-info">
-        <span class="toggle-title">👻 Ghost Mode</span>
-        <span class="toggle-sub">Post anonymously</span>
-      </div>
-      <label class="toggle-switch">
-        <input type="checkbox" id="anonymousToggle" checked />
-        <span class="toggle-track"></span>
-      </label>
-    </div>
-
-    <button class="btn-pin" id="pinItBtn">
-      <span class="btn-icon">◈</span>
-      PIN IT TO THE WORLD
+    <button class="btn-pin btn-launch" id="launchDreamBtn">
+      <span class="bi">✦</span> LAUNCH MY DREAM
     </button>
   </div>
+</div>
 
-  <!-- ═══════════════════════════════════ LIVE SIDEBAR ═══════════════════════════════════ -->
-  <aside class="sidebar glass" id="sidebar">
-    <div class="sidebar-header">
-      <h3>Live Dream Feed</h3>
-      <span class="sidebar-badge" id="totalPins">0 dreams</span>
-    </div>
+<div class="toast" id="toast"></div>
 
-    <div class="feed-list" id="feedList">
-      <!-- Populated by JS -->
-    </div>
+<script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
+<script>
+'use strict';
+const CFG={mapCenter:[20,0],mapZoom:2.5,tileUrl:'https://{s}.basemaps.cartocdn.com/dark_all/{z}/{x}/{y}{r}.png',celEvery:30000,pMin:8400,pMax:18700,pDMin:-240,pDMax:280,pTick:2800};
+const CAT={Travel:'#00f2ff',Career:'#c084fc',Love:'#ff4d6d',Money:'#fbbf24',Health:'#4ade80',Adventure:'#fb923c'};
+const DEMOS=[
+  {dream:'Swim with whale sharks in the Maldives',category:'Travel',year:2026,lat:4.17,lng:73.51,anon:true},
+  {dream:'Build my first profitable startup',category:'Career',year:2027,lat:37.77,lng:-122.43,anon:false},
+  {dream:'Watch the Northern Lights in Iceland',category:'Travel',year:2025,lat:64.13,lng:-21.93,anon:true},
+  {dream:'Fall in love on a Parisian rooftop',category:'Love',year:2026,lat:48.86,lng:2.35,anon:true},
+  {dream:'Retire at 40 with financial freedom',category:'Money',year:2035,lat:51.51,lng:-0.13,anon:false},
+  {dream:'Hike the entire Appalachian Trail',category:'Adventure',year:2028,lat:41.02,lng:-76.57,anon:true},
+  {dream:'Speak fluent Japanese',category:'Career',year:2027,lat:35.69,lng:139.69,anon:false},
+  {dream:'See cherry blossoms in Kyoto',category:'Travel',year:2025,lat:35.01,lng:135.77,anon:true},
+  {dream:'Run a marathon on every continent',category:'Health',year:2030,lat:-33.87,lng:151.21,anon:false},
+  {dream:'Write and publish my first novel',category:'Career',year:2026,lat:40.71,lng:-74.00,anon:true},
+  {dream:'Climb Kilimanjaro with my best friends',category:'Adventure',year:2027,lat:-3.07,lng:37.35,anon:false},
+  {dream:'Start a family in the Tuscan countryside',category:'Love',year:2028,lat:43.46,lng:11.06,anon:true},
+  {dream:'Invest in my first piece of real estate',category:'Money',year:2026,lat:25.20,lng:55.27,anon:false},
+  {dream:'Witness a total solar eclipse in person',category:'Travel',year:2026,lat:39.92,lng:116.39,anon:true},
+  {dream:'Become a certified scuba diver',category:'Adventure',year:2025,lat:-13.16,lng:-72.54,anon:false},
+  {dream:'Donate 10% of my income every year',category:'Money',year:2025,lat:-26.20,lng:28.04,anon:true},
+  {dream:'Learn to fly a small aircraft',category:'Adventure',year:2029,lat:55.75,lng:37.62,anon:false},
+  {dream:'Heal my relationship with my parents',category:'Love',year:2025,lat:28.61,lng:77.20,anon:true},
+  {dream:'Break a world record at something',category:'Career',year:2028,lat:-22.91,lng:-43.17,anon:false},
+  {dream:'Meditate for 365 days in a row',category:'Health',year:2025,lat:27.47,lng:89.64,anon:true},
+  {dream:'Road trip across Route 66',category:'Travel',year:2026,lat:35.46,lng:-105.94,anon:false},
+  {dream:'Live abroad for at least one full year',category:'Travel',year:2027,lat:1.35,lng:103.82,anon:true}
+];
 
-    <!-- Sidebar Ad Placeholder -->
-    <div class="ad-placeholder ad-sidebar" id="adSidebar">
-      <span class="ad-label">Advertisement</span>
-      <div class="ad-inner">
-        <!-- Adsterra Sidebar 160×600 -->
-        <p>[ Adsterra 160×600 ]</p>
-      </div>
-    </div>
-  </aside>
+// STORE
+const Store=(()=>{
+  let d=[];
+  function id(){return 'd_'+Date.now()+'_'+Math.random().toString(36).slice(2,6)}
+  function add(o){const e={id:id(),dream:o.dream,category:o.category,year:o.year||null,anon:o.anon!==false,lat:o.lat,lng:o.lng,ts:Date.now()};d.unshift(e);/* 🔥 db.collection('dreams').add(e) */return e}
+  function all(){return[...d]}
+  return{add,all};
+})();
 
-  <!-- Sidebar Toggle (mobile) -->
-  <button class="sidebar-toggle" id="sidebarToggle" aria-label="Toggle feed">
-    <span>◈</span>
-  </button>
+// MAP
+let map;
+function initMap(){
+  map=L.map('map',{center:CFG.mapCenter,zoom:CFG.mapZoom,minZoom:2,maxZoom:16,zoomControl:true,attributionControl:false});
+  L.tileLayer(CFG.tileUrl,{subdomains:'abcd',maxZoom:19}).addTo(map);
+}
 
-  <!-- ═══════════════════════════════════ DATA MODAL ═══════════════════════════════════ -->
-  <div class="modal-overlay" id="modalOverlay">
-    <div class="modal glass" id="dataModal">
-      <button class="modal-close" id="modalClose">✕</button>
+// PINS
+function mkIcon(cat){
+  const c=CAT[cat]||'#00f2ff';
+  return L.divIcon({html:`<div class="cp" style="color:${c}"><div class="pr" style="border-color:${c}"></div><div class="pr pr2" style="border-color:${c}"></div><div class="pdot2" style="background:${c};box-shadow:0 0 8px ${c}"></div></div>`,className:'',iconSize:[30,30],iconAnchor:[15,15]});
+}
+function mkPopup(e){
+  const c=CAT[e.category]||'#00f2ff';
+  const yr=e.year?`<span class="py">⏳ ${e.year}</span>`:'';
+  return`<div class="pi"><div class="pc" style="color:${c}"><span class="pcd" style="background:${c};box-shadow:0 0 5px ${c}"></span>${e.category}</div><div class="pd">${esc(e.dream)}</div><div class="pm"><span>${e.anon?'👻 Anonymous':'🌍 Dreamer'}</span>${yr}</div></div>`;
+}
+function addPin(e){return L.marker([e.lat,e.lng],{icon:mkIcon(e.category)}).addTo(map).bindPopup(mkPopup(e),{maxWidth:280})}
 
-      <div class="modal-header">
-        <div class="modal-icon">✦</div>
-        <h2>Almost There, Dreamer</h2>
-        <p>Help us make this dream universe better — it only takes 10 seconds.</p>
-      </div>
+// CELESTIAL BRIDGE
+let celLines=[];
+function drawBridge(){
+  const all=Store.all();if(all.length<2)return;
+  celLines.forEach(l=>{try{map.removeLayer(l)}catch(e){}});celLines=[];
+  const a=all[Math.floor(Math.random()*all.length)];
+  let b;do{b=all[Math.floor(Math.random()*all.length)]}while(b.id===a.id);
+  const pts=[L.latLng(a.lat,a.lng),L.latLng(b.lat,b.lng)];
+  celLines=[
+    L.polyline(pts,{color:'#00f2ff',weight:3,opacity:0.18,dashArray:'10 7'}).addTo(map),
+    L.polyline(pts,{color:'#00f2ff',weight:1.5,opacity:0.75}).addTo(map)
+  ];
+  setTimeout(()=>{celLines.forEach(l=>{try{map.removeLayer(l)}catch(e){}});celLines=[]},8000);
+}
 
-      <div class="modal-fields">
-        <div class="field-group">
-          <label for="userAge">Your Age</label>
-          <input type="number" id="userAge" placeholder="25" min="5" max="120" />
-        </div>
+// PULSE
+let pulseN=CFG.pMin+Math.floor(Math.random()*(CFG.pMax-CFG.pMin));
+function tickPulse(){
+  const d=CFG.pDMin+Math.floor(Math.random()*(CFG.pDMax-CFG.pDMin));
+  pulseN=Math.max(CFG.pMin,Math.min(CFG.pMax,pulseN+d));
+  document.getElementById('soulCount').textContent=pulseN.toLocaleString();
+}
 
-        <div class="field-group">
-          <label>Your Interests <span class="optional">(pick a few)</span></label>
-          <div class="interest-chips" id="interestChips">
-            <button class="chip" data-val="tech">Tech</button>
-            <button class="chip" data-val="art">Art</button>
-            <button class="chip" data-val="travel">Travel</button>
-            <button class="chip" data-val="music">Music</button>
-            <button class="chip" data-val="fitness">Fitness</button>
-            <button class="chip" data-val="food">Food</button>
-            <button class="chip" data-val="finance">Finance</button>
-            <button class="chip" data-val="spirituality">Spirit</button>
-          </div>
-        </div>
-      </div>
+// FEED
+function renderFeed(e){
+  const c=CAT[e.category]||'#00f2ff';
+  const yr=e.year?`<span class="fy">⏳ ${e.year}</span>`:'';
+  const el=document.createElement('div');
+  el.className='fi';el.dataset.id=e.id;
+  el.innerHTML=`<div><span class="fcd" style="background:${c};box-shadow:0 0 5px ${c}"></span><span class="fcl" style="color:${c}">${e.category}</span></div><div class="fd2">${esc(e.dream)}</div><div class="fm"><span>${e.anon?'👻 Anon':'🌍 Dreamer'}</span>${yr}</div>`;
+  document.getElementById('feedList').prepend(el);
+  const n=Store.all().length;
+  document.getElementById('totalPins').textContent=n+' dream'+(n!==1?'s':'');
+}
 
-      <!-- Modal Ad Placeholder -->
-      <div class="ad-placeholder ad-modal" id="adModal">
-        <span class="ad-label">Advertisement</span>
-        <div class="ad-inner">
-          <!-- Adsterra Modal Banner 300×250 -->
-          <p>[ Adsterra 300×250 ]</p>
-        </div>
-      </div>
+function esc(s){return s.replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;')}
 
-      <button class="btn-pin btn-launch" id="launchDreamBtn">
-        <span class="btn-icon">✦</span>
-        LAUNCH MY DREAM
-      </button>
-    </div>
-  </div>
+// TOAST
+function toast(msg,ms){
+  ms=ms||3500;const el=document.getElementById('toast');
+  el.textContent=msg;el.classList.add('show');
+  setTimeout(()=>el.classList.remove('show'),ms);
+}
 
-  <!-- ═══════════════════════════════════ TOAST ═══════════════════════════════════ -->
-  <div class="toast" id="toast"></div>
+// LAND COORDS
+const LANDS=[{lat:48.86,lng:2.35},{lat:51.51,lng:-0.13},{lat:40.71,lng:-74},{lat:35.69,lng:139.69},{lat:-33.87,lng:151.21},{lat:28.61,lng:77.20},{lat:-23.55,lng:-46.63},{lat:55.75,lng:37.62},{lat:30.04,lng:31.24},{lat:-1.29,lng:36.82},{lat:19.43,lng:-99.13},{lat:37.77,lng:-122.43},{lat:1.35,lng:103.82},{lat:52.37,lng:4.90},{lat:41.01,lng:28.97},{lat:64.13,lng:-21.93},{lat:-13.16,lng:-72.54},{lat:25.20,lng:55.27},{lat:-26.20,lng:28.04},{lat:43.70,lng:-79.42}];
+function randCoords(){const b=LANDS[Math.floor(Math.random()*LANDS.length)];return{lat:b.lat+(Math.random()-.5)*2.5,lng:b.lng+(Math.random()-.5)*2.5}}
 
-  <!-- Leaflet JS -->
-  <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
-  <!-- App JS -->
-  <script src="app.js"></script>
+// MODAL
+let pending=null;
+const chips=document.querySelectorAll('#interestChips .chip');
+chips.forEach(c=>c.addEventListener('click',()=>c.classList.toggle('active')));
+function openModal(data){
+  pending=data;
+  document.getElementById('modalOverlay').classList.add('active');
+  document.getElementById('userAge').value='';
+  chips.forEach(c=>c.classList.remove('active'));
+}
+function closeModal(){document.getElementById('modalOverlay').classList.remove('active');pending=null}
+document.getElementById('modalClose').addEventListener('click',closeModal);
+document.getElementById('modalOverlay').addEventListener('click',e=>{if(e.target===document.getElementById('modalOverlay'))closeModal()});
+document.getElementById('launchDreamBtn').addEventListener('click',()=>{
+  if(!pending)return;
+  const age=parseInt(document.getElementById('userAge').value)||null;
+  const ints=[...chips].filter(c=>c.classList.contains('active')).map(c=>c.dataset.val);
+  const entry=Store.add({...pending,age,interests:ints});
+  addPin(entry);renderFeed(entry);
+  map.flyTo([entry.lat,entry.lng],5,{animate:true,duration:1.4});
+  toast('🌍 Your dream is pinned to the world!');
+  closeModal();
+  document.getElementById('dreamText').value='';
+  document.getElementById('charUsed').textContent='0';
+  document.getElementById('goalYear').value='';
+});
+
+// PIN IT
+document.getElementById('pinItBtn').addEventListener('click',()=>{
+  const txt=document.getElementById('dreamText').value.trim();
+  if(!txt){toast('✏️ Please write your dream first!');document.getElementById('dreamText').focus();return}
+  const cat=document.getElementById('catSel').value;
+  const yr=parseInt(document.getElementById('goalYear').value)||null;
+  const anon=document.getElementById('anonToggle').checked;
+  const{lat,lng}=randCoords();
+  openModal({dream:txt,category:cat,year:yr,anon,lat,lng});
+});
+
+// CHAR COUNTER
+document.getElementById('dreamText').addEventListener('input',function(){document.getElementById('charUsed').textContent=this.value.length});
+
+// MOBILE SIDEBAR
+document.getElementById('sidebarToggle').addEventListener('click',()=>document.getElementById('sidebar').classList.toggle('open'));
+
+// SEED
+function seed(){DEMOS.forEach((d,i)=>setTimeout(()=>{const e=Store.add(d);addPin(e);renderFeed(e)},i*90))}
+
+// BOOT
+document.addEventListener('DOMContentLoaded',()=>{
+  initMap();
+  tickPulse();setInterval(tickPulse,CFG.pTick);
+  setTimeout(()=>{drawBridge();setInterval(drawBridge,CFG.celEvery)},6000);
+  seed();
+  // 🔥 Firebase: replace seed() with onSnapshot listener
+});
+</script>
 </body>
 </html>
