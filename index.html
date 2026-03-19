@@ -1,78 +1,182 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Global Bucket List | Share Your Dreams</title>
-    
-    <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" integrity="sha256-p4NxAoJBhIIN+hmNHrzRCf9tD/miZyoHS5obTRR9BMY=" crossorigin=""/>
-    
-    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;600&display=swap" rel="stylesheet">
-    
-    <link rel="stylesheet" href="style.css">
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Global Bucket List — Dream. Pin. Connect.</title>
+  <meta name="description" content="A world map where every dream finds its place. Pin your life goals and connect with dreamers across the globe." />
+
+  <!-- Fonts -->
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link href="https://fonts.googleapis.com/css2?family=Syne:wght@400;600;700;800&family=DM+Sans:wght@300;400;500&display=swap" rel="stylesheet" />
+
+  <!-- Leaflet CSS -->
+  <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
+
+  <!-- App CSS -->
+  <link rel="stylesheet" href="style.css" />
 </head>
 <body>
 
-    <div id="map"></div>
-
-    <main class="main-container">
-        
-        <header class="header">
-            <h1 class="logo">GLOBAL BUCKET LIST</h1>
-            <div class="live-status">
-                <span class="pulse"></span>
-                <p>1,240 Souls Dreaming Now</p>
-            </div>
-        </header>
-
-        <section class="dream-box glass">
-            <textarea id="dream-input" placeholder="What's your biggest dream?"></textarea>
-            
-            <div class="controls">
-                <div class="options">
-                    <select id="category">
-                        <option value="travel">🌍 Travel</option>
-                        <option value="career">🎓 Career</option>
-                        <option value="love">❤️ Love</option>
-                        <option value="money">💰 Money</option>
-                        <option value="other">✨ Other</option>
-                    </select>
-                    
-                    <label class="anon-label">
-                        <input type="checkbox" id="anon-check">
-                        <span>Ghost Mode (Anonymous)</span>
-                    </label>
-                </div>
-                
-                <button id="pin-btn">PIN IT</button>
-            </div>
-        </section>
-
-    </main>
-
-    <div id="user-modal" class="modal-overlay hidden">
-        <div class="modal-content glass">
-            <h2>Personalize Your Journey</h2>
-            <p>Tell us a bit about you to connect with similar dreams.</p>
-            
-            <div class="input-group">
-                <input type="number" id="user-age" placeholder="Your Age">
-                <input type="text" id="user-interests" placeholder="Interests (e.g. Tech, Music)">
-            </div>
-
-            <div class="modal-ad-box">
-                <p style="font-size: 10px; color: #555; margin-bottom: 5px;">Sponsored</p>
-                <div class="ad-banner">
-                    Adsterra 300x250
-                </div>
-            </div>
-
-            <button class="finish-btn" id="finish-btn">Explore The World</button>
-        </div>
+  <!-- ═══════════════════════════════════ HEADER ═══════════════════════════════════ -->
+  <header class="app-header">
+    <div class="header-left">
+      <div class="logo">
+        <span class="logo-icon">◈</span>
+        <span class="logo-text">Global<em>Bucket</em>List</span>
+      </div>
     </div>
 
-    <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js" integrity="sha256-20nQCchB9co0qIjJZRGuk2/Z9VM+kNiyxNV1lvTlZBo=" crossorigin=""></script>
-    
-    <script src="script.js"></script>
+    <!-- Live Pulse Widget -->
+    <div class="live-pulse-widget">
+      <span class="pulse-dot"></span>
+      <span class="pulse-label">Souls Dreaming Now</span>
+      <span class="pulse-count" id="soulCount">—</span>
+    </div>
+
+    <!-- Top Banner Ad Placeholder -->
+    <div class="ad-placeholder ad-top-banner" id="adTopBanner">
+      <span class="ad-label">Advertisement</span>
+      <div class="ad-inner">
+        <!-- Adsterra Top Banner 728×90 -->
+        <p>[ Adsterra Banner 728×90 ]</p>
+      </div>
+    </div>
+  </header>
+
+  <!-- ═══════════════════════════════════ MAP ═══════════════════════════════════ -->
+  <div id="map"></div>
+
+  <!-- ═══════════════════════════════════ FLOATING INPUT CARD ═══════════════════════════════════ -->
+  <div class="dream-card glass" id="dreamCard">
+    <div class="dream-card-header">
+      <h2>Pin Your Dream</h2>
+      <p class="dream-card-sub">Where in the world does your heart point?</p>
+    </div>
+
+    <div class="field-group">
+      <label for="dreamText">What's your biggest dream?</label>
+      <textarea id="dreamText" placeholder="I want to stand on the summit of Everest at sunrise…" rows="3" maxlength="280"></textarea>
+      <span class="char-count"><span id="charUsed">0</span>/280</span>
+    </div>
+
+    <div class="field-row">
+      <div class="field-group half">
+        <label for="categorySelect">Category</label>
+        <select id="categorySelect">
+          <option value="Travel">✈ Travel</option>
+          <option value="Career">💼 Career</option>
+          <option value="Love">❤ Love</option>
+          <option value="Money">💰 Money</option>
+          <option value="Health">🌿 Health</option>
+          <option value="Adventure">⚡ Adventure</option>
+        </select>
+      </div>
+
+      <div class="field-group half">
+        <label for="goalYear">Goal Year</label>
+        <input type="number" id="goalYear" placeholder="2027" min="2025" max="2099" />
+      </div>
+    </div>
+
+    <!-- Anonymous Toggle -->
+    <div class="toggle-row">
+      <div class="toggle-info">
+        <span class="toggle-title">👻 Ghost Mode</span>
+        <span class="toggle-sub">Post anonymously</span>
+      </div>
+      <label class="toggle-switch">
+        <input type="checkbox" id="anonymousToggle" checked />
+        <span class="toggle-track"></span>
+      </label>
+    </div>
+
+    <button class="btn-pin" id="pinItBtn">
+      <span class="btn-icon">◈</span>
+      PIN IT TO THE WORLD
+    </button>
+  </div>
+
+  <!-- ═══════════════════════════════════ LIVE SIDEBAR ═══════════════════════════════════ -->
+  <aside class="sidebar glass" id="sidebar">
+    <div class="sidebar-header">
+      <h3>Live Dream Feed</h3>
+      <span class="sidebar-badge" id="totalPins">0 dreams</span>
+    </div>
+
+    <div class="feed-list" id="feedList">
+      <!-- Populated by JS -->
+    </div>
+
+    <!-- Sidebar Ad Placeholder -->
+    <div class="ad-placeholder ad-sidebar" id="adSidebar">
+      <span class="ad-label">Advertisement</span>
+      <div class="ad-inner">
+        <!-- Adsterra Sidebar 160×600 -->
+        <p>[ Adsterra 160×600 ]</p>
+      </div>
+    </div>
+  </aside>
+
+  <!-- Sidebar Toggle (mobile) -->
+  <button class="sidebar-toggle" id="sidebarToggle" aria-label="Toggle feed">
+    <span>◈</span>
+  </button>
+
+  <!-- ═══════════════════════════════════ DATA MODAL ═══════════════════════════════════ -->
+  <div class="modal-overlay" id="modalOverlay">
+    <div class="modal glass" id="dataModal">
+      <button class="modal-close" id="modalClose">✕</button>
+
+      <div class="modal-header">
+        <div class="modal-icon">✦</div>
+        <h2>Almost There, Dreamer</h2>
+        <p>Help us make this dream universe better — it only takes 10 seconds.</p>
+      </div>
+
+      <div class="modal-fields">
+        <div class="field-group">
+          <label for="userAge">Your Age</label>
+          <input type="number" id="userAge" placeholder="25" min="5" max="120" />
+        </div>
+
+        <div class="field-group">
+          <label>Your Interests <span class="optional">(pick a few)</span></label>
+          <div class="interest-chips" id="interestChips">
+            <button class="chip" data-val="tech">Tech</button>
+            <button class="chip" data-val="art">Art</button>
+            <button class="chip" data-val="travel">Travel</button>
+            <button class="chip" data-val="music">Music</button>
+            <button class="chip" data-val="fitness">Fitness</button>
+            <button class="chip" data-val="food">Food</button>
+            <button class="chip" data-val="finance">Finance</button>
+            <button class="chip" data-val="spirituality">Spirit</button>
+          </div>
+        </div>
+      </div>
+
+      <!-- Modal Ad Placeholder -->
+      <div class="ad-placeholder ad-modal" id="adModal">
+        <span class="ad-label">Advertisement</span>
+        <div class="ad-inner">
+          <!-- Adsterra Modal Banner 300×250 -->
+          <p>[ Adsterra 300×250 ]</p>
+        </div>
+      </div>
+
+      <button class="btn-pin btn-launch" id="launchDreamBtn">
+        <span class="btn-icon">✦</span>
+        LAUNCH MY DREAM
+      </button>
+    </div>
+  </div>
+
+  <!-- ═══════════════════════════════════ TOAST ═══════════════════════════════════ -->
+  <div class="toast" id="toast"></div>
+
+  <!-- Leaflet JS -->
+  <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
+  <!-- App JS -->
+  <script src="app.js"></script>
 </body>
 </html>
