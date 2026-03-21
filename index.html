@@ -1,0 +1,1294 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="theme-color" content="#04060f">
+<title>NEXUS CRASH</title>
+<link href="https://fonts.googleapis.com/css2?family=Orbitron:wght@700;900&family=Share+Tech+Mono&family=Exo+2:wght@300;400;600&display=swap" rel="stylesheet">
+<style>
+/* ──────────────────────────────────────────
+   VARIABLES & RESET
+────────────────────────────────────────── */
+:root {
+  --bg:      #04060f;
+  --panel:   #080d1a;
+  --border:  #1a2a4a;
+  --blue:    #00d4ff;
+  --cyan:    #00fff7;
+  --green:   #00ff88;
+  --yellow:  #ffe600;
+  --red:     #ff2d55;
+  --purple:  #bf5fff;
+  --txt:     #e8f4ff;
+  --muted:   #4a6a8a;
+  --dim:     #1c2d45;
+}
+*, *::before, *::after {
+  margin: 0; padding: 0;
+  box-sizing: border-box;
+  -webkit-tap-highlight-color: transparent;
+}
+html, body {
+  width: 100%; height: 100%;
+  overflow: hidden;
+  background: var(--bg);
+  color: var(--txt);
+  font-family: 'Exo 2', sans-serif;
+}
+body {
+  display: flex;
+  flex-direction: column;
+  /* Fallback for browsers that don't support dvh */
+  min-height: 100vh;
+  min-height: -webkit-fill-available;
+  background-image:
+    radial-gradient(ellipse 80% 40% at 50% 0%, rgba(0,100,200,.1) 0%, transparent 60%),
+    repeating-linear-gradient(0deg,   transparent, transparent 39px, rgba(0,60,120,.04) 40px),
+    repeating-linear-gradient(90deg,  transparent, transparent 39px, rgba(0,60,120,.04) 40px);
+}
+input[type=number] { -moz-appearance: textfield; appearance: textfield; }
+input[type=number]::-webkit-inner-spin-button,
+input[type=number]::-webkit-outer-spin-button { -webkit-appearance: none; }
+button { cursor: pointer; border: none; background: none; font-family: inherit; }
+
+/* ──────────────────────────────────────────
+   HEADER
+────────────────────────────────────────── */
+#header {
+  flex-shrink: 0;
+  height: 52px;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 0 14px;
+  background: rgba(8,13,26,.98);
+  border-bottom: 1px solid var(--border);
+  position: relative;
+  z-index: 100;
+  /* Safe area for notched phones */
+  padding-top: env(safe-area-inset-top, 0px);
+}
+.logo {
+  font-family: 'Orbitron', monospace;
+  font-weight: 900;
+  font-size: clamp(.85rem, 4vw, 1.3rem);
+  letter-spacing: 2px;
+  background: linear-gradient(90deg, var(--blue), var(--cyan));
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  background-clip: text;
+  white-space: nowrap;
+  user-select: none;
+}
+.logo .x { -webkit-text-fill-color: var(--red); }
+
+.hdr-right { display: flex; align-items: center; gap: 8px; }
+
+.bal {
+  background: rgba(0,212,255,.07);
+  border: 1px solid rgba(0,212,255,.25);
+  border-radius: 8px;
+  padding: 4px 12px;
+  font-family: 'Share Tech Mono', monospace;
+  line-height: 1.3;
+}
+.bal-label { display: block; font-size: .58rem; color: var(--muted); }
+.bal-amount { font-size: clamp(.78rem, 2vw, .95rem); color: var(--green); letter-spacing: 1px; }
+
+.pf {
+  display: flex; align-items: center; gap: 5px;
+  font-size: .6rem; color: var(--green);
+  border: 1px solid rgba(0,255,136,.25);
+  border-radius: 20px;
+  padding: 4px 9px;
+  letter-spacing: 1px;
+  white-space: nowrap;
+}
+.pf-dot {
+  width: 6px; height: 6px; border-radius: 50%;
+  background: var(--green);
+  animation: blink 1.5s infinite;
+  flex-shrink: 0;
+}
+@keyframes blink { 0%,100%{opacity:1} 50%{opacity:.25} }
+@media (max-width:400px) { .pf-label { display: none; } }
+
+/* Sidebar toggle (mobile only) */
+#sb-btn {
+  display: none;
+  width: 36px; height: 36px;
+  align-items: center; justify-content: center;
+  background: rgba(0,212,255,.08);
+  border: 1px solid rgba(0,212,255,.2);
+  border-radius: 8px;
+  color: var(--blue);
+  font-size: 1.1rem;
+  flex-shrink: 0;
+}
+@media (max-width:760px) { #sb-btn { display: flex; } }
+
+/* ──────────────────────────────────────────
+   HISTORY BAR
+────────────────────────────────────────── */
+#histbar {
+  flex-shrink: 0;
+  height: 34px;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 0 12px;
+  background: rgba(8,13,26,.85);
+  border-bottom: 1px solid var(--border);
+  overflow: hidden;
+}
+.hist-title {
+  font-family: 'Share Tech Mono', monospace;
+  font-size: .58rem;
+  color: var(--muted);
+  letter-spacing: 1px;
+  white-space: nowrap;
+  flex-shrink: 0;
+}
+#hist-chips { display: flex; gap: 4px; overflow: hidden; flex: 1; min-width: 0; }
+.chip {
+  font-family: 'Orbitron', monospace;
+  font-size: .58rem; font-weight: 700;
+  padding: 2px 7px; border-radius: 4px;
+  white-space: nowrap; flex-shrink: 0;
+  animation: slideIn .3s ease;
+}
+@keyframes slideIn { from{opacity:0;transform:translateX(-8px)} to{opacity:1;transform:none} }
+.chip-hi { background: rgba(0,255,136,.1);   color: var(--green);  border: 1px solid rgba(0,255,136,.3); }
+.chip-lo { background: rgba(255,45,85,.1);   color: var(--red);    border: 1px solid rgba(255,45,85,.3); }
+.chip-mg { background: rgba(191,95,255,.12); color: var(--purple); border: 1px solid rgba(191,95,255,.4); }
+
+/* ──────────────────────────────────────────
+   MAIN CONTENT  (fills remaining height)
+────────────────────────────────────────── */
+#main {
+  flex: 1;
+  display: flex;
+  overflow: hidden;
+  /* Fallback height */
+  min-height: 0;
+}
+
+/* ──────────────────────────────────────────
+   GAME PANEL  (left / center)
+────────────────────────────────────────── */
+#game-panel {
+  flex: 1;
+  min-width: 0;
+  display: flex;
+  flex-direction: column;
+  padding: 10px;
+  gap: 10px;
+  overflow: hidden;
+}
+
+/* CANVAS CONTAINER */
+#canvas-box {
+  position: relative;
+  flex: 1;
+  min-height: 0;
+  background: var(--panel);
+  border: 1px solid var(--border);
+  border-radius: 12px;
+  overflow: hidden;
+}
+#cvs {
+  position: absolute;
+  top: 0; left: 0;
+  width: 100%; height: 100%;
+  display: block;
+}
+
+/* MULTIPLIER */
+#mult-overlay {
+  position: absolute; inset: 0;
+  display: flex; flex-direction: column;
+  align-items: center; justify-content: center;
+  pointer-events: none;
+}
+#mult-val {
+  font-family: 'Orbitron', monospace;
+  font-weight: 900;
+  font-size: clamp(2.2rem, 9vw, 5.5rem);
+  line-height: 1;
+  color: var(--cyan);
+  text-shadow: 0 0 20px var(--cyan), 0 0 60px rgba(0,255,247,.3);
+  letter-spacing: -2px;
+  transition: color .2s, text-shadow .2s;
+}
+#mult-val.state-crashed {
+  color: var(--red);
+  text-shadow: 0 0 20px var(--red), 0 0 60px rgba(255,45,85,.5);
+  animation: shake .4s ease;
+}
+#mult-val.state-cashed {
+  color: var(--green);
+  text-shadow: 0 0 20px var(--green), 0 0 60px rgba(0,255,136,.5);
+}
+@keyframes shake {
+  0%,100%{transform:none}
+  20%{transform:translateX(-6px) rotate(-1deg)}
+  40%{transform:translateX(6px) rotate(1deg)}
+  60%{transform:translateX(-4px)}
+  80%{transform:translateX(4px)}
+}
+#mult-sub {
+  margin-top: 6px;
+  font-family: 'Share Tech Mono', monospace;
+  font-size: clamp(.55rem, 1.2vw, .75rem);
+  color: var(--muted);
+  letter-spacing: 3px;
+  text-align: center;
+  padding: 0 10px;
+}
+
+/* COUNTDOWN */
+#cd-overlay {
+  position: absolute; inset: 0;
+  display: flex; flex-direction: column;
+  align-items: center; justify-content: center;
+  background: rgba(4,6,15,.88);
+  border-radius: 12px;
+  z-index: 10;
+  transition: opacity .35s ease;
+}
+#cd-overlay.gone { opacity: 0; pointer-events: none; }
+#cd-num {
+  font-family: 'Orbitron', monospace;
+  font-weight: 900;
+  font-size: clamp(3rem, 14vw, 6rem);
+  color: var(--blue);
+  text-shadow: 0 0 30px var(--blue), 0 0 80px rgba(0,212,255,.4);
+  line-height: 1;
+  animation: pulse 1s ease infinite;
+}
+@keyframes pulse { 0%,100%{transform:scale(1)} 50%{transform:scale(1.06)} }
+#cd-label {
+  margin-top: 8px;
+  font-family: 'Share Tech Mono', monospace;
+  font-size: clamp(.55rem, 1.2vw, .73rem);
+  color: var(--muted);
+  letter-spacing: 4px;
+}
+
+/* CRASH FLASH */
+#flash {
+  position: absolute; inset: 0;
+  background: radial-gradient(ellipse at center, rgba(255,45,85,.35) 0%, transparent 70%);
+  border-radius: 12px;
+  opacity: 0;
+  pointer-events: none;
+}
+#flash.boom { animation: flashOut .8s forwards; }
+@keyframes flashOut { 0%{opacity:1} 100%{opacity:0} }
+
+/* ROCKET */
+#rocket {
+  position: absolute;
+  pointer-events: none;
+  display: none;
+  filter: drop-shadow(0 0 8px var(--cyan));
+  width: 44px; height: 44px;
+}
+
+/* SEED LABEL */
+#seed-lbl {
+  position: absolute;
+  bottom: 8px; right: 10px;
+  font-family: 'Share Tech Mono', monospace;
+  font-size: .52rem;
+  color: rgba(42,64,96,.8);
+  pointer-events: none;
+}
+#seed-lbl span { color: rgba(0,255,136,.4); }
+
+/* ──────────────────────────────────────────
+   BET CONTROLS
+────────────────────────────────────────── */
+#controls {
+  flex-shrink: 0;
+  background: var(--panel);
+  border: 1px solid var(--border);
+  border-radius: 12px;
+  padding: 12px;
+  display: grid;
+  grid-template-columns: 1fr 1fr 1fr;
+  gap: 10px;
+  align-items: end;
+}
+/* 2-col tablet */
+@media (max-width:680px) {
+  #controls { grid-template-columns: 1fr 1fr; }
+  #act-grp  { grid-column: 1 / -1; }
+}
+/* 1-col phone */
+@media (max-width:380px) {
+  #controls { grid-template-columns: 1fr; }
+  #act-grp  { grid-column: auto; }
+}
+
+.ctrl-grp { display: flex; flex-direction: column; gap: 6px; }
+.ctrl-label {
+  font-family: 'Share Tech Mono', monospace;
+  font-size: .58rem;
+  color: var(--muted);
+  letter-spacing: 1.5px;
+}
+.ctrl-row { position: relative; display: flex; align-items: center; }
+.ctrl-in {
+  width: 100%;
+  background: rgba(0,0,0,.5);
+  border: 1px solid #1e3a6e;
+  border-radius: 6px;
+  color: var(--txt);
+  font-family: 'Orbitron', monospace;
+  font-size: clamp(.8rem, 2vw, 1rem);
+  font-weight: 700;
+  padding: 9px 36px 9px 11px;
+  outline: none;
+  -webkit-appearance: none;
+  transition: border-color .2s, box-shadow .2s;
+}
+.ctrl-in:focus {
+  border-color: var(--blue);
+  box-shadow: 0 0 0 3px rgba(0,212,255,.1);
+}
+.ctrl-sfx {
+  position: absolute; right: 9px;
+  font-size: .58rem; color: var(--muted);
+  font-family: 'Share Tech Mono', monospace;
+  pointer-events: none;
+}
+.quick-row { display: flex; gap: 4px; }
+.qbtn {
+  flex: 1;
+  background: rgba(0,212,255,.06);
+  border: 1px solid rgba(0,212,255,.15);
+  color: var(--blue);
+  font-family: 'Share Tech Mono', monospace;
+  font-size: .6rem;
+  padding: 5px 2px;
+  border-radius: 5px;
+  min-height: 28px;
+  transition: background .15s, border-color .15s;
+}
+.qbtn:hover, .qbtn:active {
+  background: rgba(0,212,255,.18);
+  border-color: var(--blue);
+}
+
+/* ACTION BUTTON */
+#act-btn {
+  width: 100%;
+  min-height: 54px;
+  border-radius: 8px;
+  font-family: 'Orbitron', monospace;
+  font-size: clamp(.7rem, 2vw, .85rem);
+  font-weight: 700;
+  letter-spacing: 1.5px;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 2px;
+  transition: transform .15s, box-shadow .2s;
+  position: relative;
+  overflow: hidden;
+}
+#act-btn::after {
+  content: '';
+  position: absolute; inset: 0;
+  background: linear-gradient(90deg, transparent, rgba(255,255,255,.08), transparent);
+  transform: translateX(-100%);
+  transition: transform .4s;
+}
+#act-btn:not(:disabled):hover::after { transform: translateX(100%); }
+#act-btn:not(:disabled):active { transform: scale(.97); }
+#act-btn:disabled { opacity: .5; cursor: default; }
+#act-btn.mode-idle {
+  background: linear-gradient(135deg, #005580, #008cb3);
+  color: #fff;
+  box-shadow: 0 4px 18px rgba(0,140,180,.35);
+}
+#act-btn.mode-queued {
+  background: linear-gradient(135deg, #003d5c, #006080);
+  color: rgba(255,255,255,.6);
+  box-shadow: none;
+}
+#act-btn.mode-cashout {
+  background: linear-gradient(135deg, #8a6d00, #f0bb00);
+  color: #000;
+  box-shadow: 0 4px 24px rgba(255,200,0,.5);
+  animation: glow-yellow .8s infinite alternate;
+}
+@keyframes glow-yellow {
+  from { box-shadow: 0 4px 18px rgba(255,200,0,.4); }
+  to   { box-shadow: 0 4px 38px rgba(255,200,0,.8), 0 0 50px rgba(255,200,0,.2); }
+}
+#act-btn.mode-cashed {
+  background: linear-gradient(135deg, #004d28, #00a855);
+  color: #fff;
+  box-shadow: 0 4px 18px rgba(0,180,80,.4);
+}
+#act-btn.mode-crashed {
+  background: linear-gradient(135deg, #4d0011, #b3002a);
+  color: rgba(255,255,255,.7);
+  box-shadow: 0 4px 18px rgba(180,0,40,.3);
+}
+#act-btn.mode-waiting {
+  background: linear-gradient(135deg, #1a2a40, #2a3d5a);
+  color: rgba(255,255,255,.4);
+}
+#btn-main { font-size: clamp(.7rem, 2vw, .85rem); font-weight: 700; letter-spacing: 1.5px; }
+#btn-sub  { font-family: 'Exo 2', sans-serif; font-size: clamp(.5rem, 1.2vw, .62rem); font-weight: 300; opacity: .75; letter-spacing: 1px; }
+
+/* ──────────────────────────────────────────
+   SIDEBAR
+────────────────────────────────────────── */
+#sidebar {
+  width: 272px;
+  flex-shrink: 0;
+  display: flex;
+  flex-direction: column;
+  border-left: 1px solid var(--border);
+  background: var(--panel);
+  overflow: hidden;
+}
+
+/* Mobile: drawer */
+@media (max-width:760px) {
+  #sidebar {
+    position: fixed;
+    top: 86px; /* header + histbar */
+    right: 0;
+    bottom: 0;
+    bottom: env(safe-area-inset-bottom, 0px);
+    z-index: 200;
+    width: min(272px, 88vw);
+    border-left: 1px solid rgba(0,212,255,.3);
+    box-shadow: -8px 0 40px rgba(0,0,0,.7);
+    transform: translateX(105%);
+    transition: transform .3s cubic-bezier(.25,.8,.25,1);
+  }
+  #sidebar.open { transform: translateX(0); }
+}
+@media (max-width:760px) and (max-height:500px) {
+  #sidebar { top: 76px; }
+}
+
+/* Backdrop */
+#sb-backdrop {
+  display: none;
+  position: fixed; inset: 0;
+  z-index: 190;
+  background: rgba(0,0,0,.6);
+}
+#sb-backdrop.show { display: block; }
+
+/* Tabs */
+.sb-tabs {
+  display: flex;
+  flex-shrink: 0;
+  border-bottom: 1px solid var(--border);
+}
+.sb-tab {
+  flex: 1;
+  padding: 10px 4px;
+  font-family: 'Share Tech Mono', monospace;
+  font-size: .62rem;
+  letter-spacing: 1px;
+  color: var(--muted);
+  border-bottom: 2px solid transparent;
+  transition: color .2s, border-color .2s;
+}
+.sb-tab.on { color: var(--blue); border-bottom-color: var(--blue); background: rgba(0,212,255,.04); }
+.sb-tab:hover:not(.on) { color: var(--txt); }
+
+.sb-pane {
+  display: none;
+  flex: 1;
+  overflow-y: auto;
+  overflow-x: hidden;
+  flex-direction: column;
+  gap: 5px;
+  padding: 10px;
+}
+.sb-pane.on { display: flex; }
+.sb-pane::-webkit-scrollbar { width: 3px; }
+.sb-pane::-webkit-scrollbar-thumb { background: #1e3a6e; border-radius: 2px; }
+
+/* Bet rows */
+.brow {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 7px 9px;
+  background: rgba(0,0,0,.3);
+  border: 1px solid var(--border);
+  border-radius: 6px;
+  flex-shrink: 0;
+  animation: rowIn .25s ease;
+}
+@keyframes rowIn { from{opacity:0;transform:translateY(-3px)} to{opacity:1;transform:none} }
+.brow.you  { border-color: rgba(0,212,255,.35); background: rgba(0,212,255,.05); }
+.brow.won  { border-color: rgba(0,255,136,.3);  background: rgba(0,255,136,.04); }
+.brow.lost { border-color: rgba(255,45,85,.15); opacity: .6; }
+
+.brow-left { display: flex; align-items: center; gap: 7px; }
+.av {
+  width: 22px; height: 22px; border-radius: 50%;
+  display: flex; align-items: center; justify-content: center;
+  font-size: .52rem; font-weight: 700;
+  font-family: 'Orbitron', monospace;
+  flex-shrink: 0;
+}
+.b-name   { font-size: .7rem; color: var(--txt); }
+.b-stake  { font-family: 'Share Tech Mono', monospace; font-size: .62rem; color: var(--muted); }
+.b-result { font-family: 'Orbitron', monospace; font-size: .65rem; font-weight: 700; }
+.b-result.p { color: var(--muted); }
+.b-result.w { color: var(--green); }
+.b-result.l { color: var(--red); }
+
+/* Stat rows */
+.stat-row {
+  display: flex; align-items: center; justify-content: space-between;
+  padding: 8px 10px;
+  background: rgba(0,0,0,.3);
+  border: 1px solid var(--border);
+  border-radius: 6px; flex-shrink: 0;
+}
+.stat-k { font-size: .65rem; color: var(--muted); }
+.stat-v { font-family: 'Orbitron', monospace; font-size: .75rem; font-weight: 700; }
+
+/* Footer stats */
+#sb-foot {
+  flex-shrink: 0;
+  display: grid;
+  grid-template-columns: 1fr 1fr 1fr;
+  border-top: 1px solid var(--border);
+}
+.foot-cell {
+  padding: 9px 4px;
+  text-align: center;
+  border-right: 1px solid var(--border);
+}
+.foot-cell:last-child { border-right: none; }
+.foot-v { font-family: 'Orbitron', monospace; font-size: clamp(.72rem,1.1vw,.88rem); font-weight: 700; color: var(--cyan); }
+.foot-l { font-size: .52rem; color: var(--muted); letter-spacing: .8px; margin-top: 2px; }
+
+/* ──────────────────────────────────────────
+   TOAST
+────────────────────────────────────────── */
+#toast {
+  position: fixed;
+  bottom: calc(20px + env(safe-area-inset-bottom, 0px));
+  left: 50%;
+  transform: translateX(-50%) translateY(12px);
+  padding: 11px 20px;
+  border-radius: 8px;
+  font-family: 'Orbitron', monospace;
+  font-size: clamp(.65rem, 1.5vw, .82rem);
+  font-weight: 700;
+  letter-spacing: 1px;
+  opacity: 0;
+  pointer-events: none;
+  transition: opacity .3s, transform .3s;
+  z-index: 999;
+  white-space: nowrap;
+  max-width: calc(100vw - 32px);
+  text-align: center;
+}
+#toast.show  { opacity: 1; transform: translateX(-50%) translateY(0); }
+#toast.win   { background: rgba(0,255,136,.12); border: 1px solid var(--green); color: var(--green); box-shadow: 0 0 28px rgba(0,255,136,.25); }
+#toast.lose  { background: rgba(255,45,85,.12);  border: 1px solid var(--red);   color: var(--red);   box-shadow: 0 0 28px rgba(255,45,85,.25); }
+
+/* ──────────────────────────────────────────
+   LANDSCAPE PHONE  (short screens)
+────────────────────────────────────────── */
+@media (max-height:500px) and (orientation:landscape) {
+  #header   { height: 42px; }
+  #histbar  { height: 26px; }
+  #controls { padding: 7px; gap: 6px; }
+  #act-btn  { min-height: 42px; }
+  #cd-num   { font-size: 2.8rem; }
+  #rocket   { width: 32px; height: 32px; }
+}
+
+/* ──────────────────────────────────────────
+   LARGE SCREENS
+────────────────────────────────────────── */
+@media (min-width:1200px) {
+  #sidebar  { width: 300px; }
+  #header   { height: 58px; }
+  #controls { padding: 14px; gap: 12px; }
+}
+@media (min-width:1600px) {
+  #sidebar  { width: 340px; }
+}
+</style>
+</head>
+<body>
+
+<!-- ══════ HEADER ══════ -->
+<div id="header">
+  <div class="logo">NEXUS<span class="x">✕</span>CRASH</div>
+  <div class="hdr-right">
+    <div class="pf">
+      <span class="pf-dot"></span>
+      <span class="pf-label">PROVABLY FAIR</span>
+    </div>
+    <div class="bal">
+      <span class="bal-label">BALANCE</span>
+      <span class="bal-amount" id="bal-display">$1,000.00</span>
+    </div>
+    <button id="sb-btn" onclick="toggleSidebar()" aria-label="Open bets">☰</button>
+  </div>
+</div>
+
+<!-- ══════ HISTORY ══════ -->
+<div id="histbar">
+  <span class="hist-title">HISTORY</span>
+  <div id="hist-chips"></div>
+</div>
+
+<!-- ══════ MAIN ══════ -->
+<div id="main">
+
+  <!-- GAME PANEL -->
+  <div id="game-panel">
+
+    <!-- Canvas -->
+    <div id="canvas-box">
+      <canvas id="cvs"></canvas>
+
+      <!-- Rocket -->
+      <svg id="rocket" viewBox="0 0 48 48" xmlns="http://www.w3.org/2000/svg">
+        <defs>
+          <filter id="rg2">
+            <feGaussianBlur stdDeviation="2.5" result="b"/>
+            <feMerge><feMergeNode in="b"/><feMergeNode in="SourceGraphic"/></feMerge>
+          </filter>
+          <linearGradient id="rgrad" x1="0" y1="0" x2="0" y2="1">
+            <stop offset="0%" stop-color="#00fff7"/>
+            <stop offset="100%" stop-color="#0055ff"/>
+          </linearGradient>
+        </defs>
+        <ellipse cx="24" cy="20" rx="7"  ry="15" fill="url(#rgrad)" filter="url(#rg2)"/>
+        <polygon points="24,4 17,18 31,18" fill="#00fff7" filter="url(#rg2)"/>
+        <polygon points="17,28 10,38 20,32" fill="#0044cc" opacity=".85"/>
+        <polygon points="31,28 38,38 28,32" fill="#0044cc" opacity=".85"/>
+        <ellipse cx="24" cy="36" rx="5" ry="3" fill="#ff6600" opacity=".9"/>
+        <ellipse cx="24" cy="40" rx="3" ry="5" fill="#ff2200" opacity=".6"/>
+        <circle  cx="24" cy="18" r="3.5" fill="none" stroke="#fff" stroke-width="1.5" opacity=".8"/>
+        <circle  cx="24" cy="18" r="2"   fill="rgba(200,240,255,.4)"/>
+      </svg>
+
+      <!-- Multiplier display -->
+      <div id="mult-overlay">
+        <div id="mult-val">1.00x</div>
+        <div id="mult-sub">WAITING FOR BETS</div>
+      </div>
+
+      <!-- Countdown -->
+      <div id="cd-overlay">
+        <div id="cd-num">5</div>
+        <div id="cd-label">NEXT ROUND IN</div>
+      </div>
+
+      <!-- Effects -->
+      <div id="flash"></div>
+      <div id="seed-lbl">SEED: <span id="seed-val">—</span></div>
+    </div>
+
+    <!-- Controls -->
+    <div id="controls">
+
+      <div class="ctrl-grp">
+        <div class="ctrl-label">BET AMOUNT (USD)</div>
+        <div class="ctrl-row">
+          <input class="ctrl-in" id="bet-input" type="number" value="10" min="1" max="10000" step="1" inputmode="decimal">
+          <span class="ctrl-sfx">USD</span>
+        </div>
+        <div class="quick-row">
+          <button class="qbtn" onclick="Game.setAmount(5)">$5</button>
+          <button class="qbtn" onclick="Game.setAmount(10)">$10</button>
+          <button class="qbtn" onclick="Game.setAmount(25)">$25</button>
+          <button class="qbtn" onclick="Game.setAmount(50)">$50</button>
+        </div>
+      </div>
+
+      <div class="ctrl-grp">
+        <div class="ctrl-label">AUTO CASH OUT</div>
+        <div class="ctrl-row">
+          <input class="ctrl-in" id="auto-input" type="number" placeholder="OFF" min="1.01" step="0.1" inputmode="decimal">
+          <span class="ctrl-sfx">×</span>
+        </div>
+        <div class="quick-row">
+          <button class="qbtn" onclick="Game.setAuto(1.5)">1.5×</button>
+          <button class="qbtn" onclick="Game.setAuto(2)">2×</button>
+          <button class="qbtn" onclick="Game.setAuto(3)">3×</button>
+          <button class="qbtn" onclick="Game.setAuto(5)">5×</button>
+        </div>
+      </div>
+
+      <div class="ctrl-grp" id="act-grp">
+        <div class="ctrl-label">ACTION</div>
+        <button id="act-btn" class="mode-idle" onclick="Game.action()">
+          <span id="btn-main">PLACE BET</span>
+          <span id="btn-sub">Click to enter round</span>
+        </button>
+      </div>
+
+    </div><!-- /controls -->
+
+  </div><!-- /game-panel -->
+
+  <!-- Backdrop -->
+  <div id="sb-backdrop" onclick="toggleSidebar()"></div>
+
+  <!-- SIDEBAR -->
+  <div id="sidebar">
+
+    <div class="sb-tabs">
+      <button class="sb-tab on"  onclick="switchTab('bets', this)">LIVE BETS</button>
+      <button class="sb-tab"     onclick="switchTab('stats', this)">MY STATS</button>
+    </div>
+
+    <div class="sb-pane on" id="pane-bets"></div>
+
+    <div class="sb-pane" id="pane-stats">
+      <div class="stat-row"><span class="stat-k">TOTAL WAGERED</span><span class="stat-v" id="s-wag" style="color:var(--cyan)">$0.00</span></div>
+      <div class="stat-row"><span class="stat-k">TOTAL WON</span>    <span class="stat-v" id="s-won" style="color:var(--green)">$0.00</span></div>
+      <div class="stat-row"><span class="stat-k">ROUNDS PLAYED</span><span class="stat-v" id="s-rnd" style="color:var(--muted)">0</span></div>
+      <div class="stat-row"><span class="stat-k">BEST CASHOUT</span> <span class="stat-v" id="s-best" style="color:var(--yellow)">—</span></div>
+      <div class="stat-row"><span class="stat-k">WIN RATE</span>     <span class="stat-v" id="s-wr"  style="color:var(--muted)">—</span></div>
+    </div>
+
+    <div id="sb-foot">
+      <div class="foot-cell"><div class="foot-v" id="f-playing">0</div>  <div class="foot-l">PLAYING</div></div>
+      <div class="foot-cell"><div class="foot-v" id="f-pool">$0</div>    <div class="foot-l">POOL</div></div>
+      <div class="foot-cell"><div class="foot-v" id="f-round">0</div>    <div class="foot-l">ROUND #</div></div>
+    </div>
+
+  </div><!-- /sidebar -->
+
+</div><!-- /main -->
+
+<div id="toast"></div>
+
+<!-- ══════════════════════════════════════════
+     GAME ENGINE
+══════════════════════════════════════════ -->
+<script>
+/* ─────────────────────────────────────────────
+   SIDEBAR TOGGLE  (global helper)
+───────────────────────────────────────────── */
+function toggleSidebar() {
+  var sb = document.getElementById('sidebar');
+  var bd = document.getElementById('sb-backdrop');
+  var isOpen = sb.classList.toggle('open');
+  if (isOpen) bd.classList.add('show');
+  else        bd.classList.remove('show');
+}
+function switchTab(name, btn) {
+  document.querySelectorAll('.sb-tab').forEach(function(b)  { b.classList.remove('on'); });
+  document.querySelectorAll('.sb-pane').forEach(function(p) { p.classList.remove('on'); });
+  btn.classList.add('on');
+  document.getElementById('pane-' + name).classList.add('on');
+}
+
+/* ─────────────────────────────────────────────
+   CRASH ENGINE  — IIFE (anti-cheat module)
+───────────────────────────────────────────── */
+var Game = (function() {
+  'use strict';
+
+  /* CONFIG */
+  var CFG = Object.freeze({ TICK: 100, CD_SECS: 5, HOUSE_EDGE: 0.01, GROWTH: 0.00006 });
+
+  /* STATE  (private) */
+  var phase    = 'waiting';  // waiting | flying | crashed
+  var mult     = 1.00;
+  var crashPt  = 1.00;
+  var seed     = '';
+  var balance  = 1000.00;
+  var betAmt   = 10.00;
+  var betOn    = false;
+  var cashedOut = false;
+  var cashMult  = 0;
+  var autoMult  = null;
+  var roundNum  = 0;
+  var tickCount = 0;
+  var cdLeft    = CFG.CD_SECS;
+
+  /* Session stats */
+  var totWagered = 0, totWon = 0, totRounds = 0, bestMult = 0, wins = 0;
+
+  var bots     = [];
+  var history  = [];
+  var tickTmr  = null;
+  var cdTmr    = null;
+
+  /* DOM shortcuts */
+  function el(id) { return document.getElementById(id); }
+
+  var canvas = el('cvs');
+  var ctx    = canvas.getContext('2d');
+  var box    = el('canvas-box');
+  var rocket = el('rocket');
+
+  /* ── Provably Fair ─────────────────────────── */
+  function makeSeed() {
+    var arr = new Uint8Array(16);
+    crypto.getRandomValues(arr);
+    return Array.from(arr).map(function(b) {
+      return b.toString(16).padStart(2, '0');
+    }).join('');
+  }
+
+  /* Industry formula: 99 / (100 − X)  where X comes from seed hash */
+  function calcCrash(s) {
+    var h = 0;
+    for (var i = 0; i < s.length; i++) h = (Math.imul(31, h) + s.charCodeAt(i)) | 0;
+    var x = Math.abs(h) / 2147483648; // [0,1)
+    if (x < CFG.HOUSE_EDGE) return 1.00;
+    var c = 99 / (100 - x * 100);
+    return Math.min(Math.max(parseFloat(c.toFixed(2)), 1.00), 99999);
+  }
+
+  /* Multiplier growth: e^(BASE * ticks) — server-identical */
+  function tickToMult(t) {
+    return parseFloat(Math.pow(Math.E, CFG.GROWTH * t).toFixed(2));
+  }
+
+  /* ── Canvas ─────────────────────────────────── */
+  var pts = [], gMaxX = 100, gMaxY = 3;
+
+  function resizeCanvas() {
+    var dpr = window.devicePixelRatio || 1;
+    var r   = box.getBoundingClientRect();
+    canvas.width  = Math.round(r.width  * dpr);
+    canvas.height = Math.round(r.height * dpr);
+    canvas.style.width  = r.width  + 'px';
+    canvas.style.height = r.height + 'px';
+  }
+
+  function drawCanvas() {
+    var dpr = window.devicePixelRatio || 1;
+    var W   = canvas.width  / dpr;
+    var H   = canvas.height / dpr;
+
+    /* Always reset transform before drawing */
+    ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
+    ctx.clearRect(0, 0, W, H);
+
+    /* Grid */
+    ctx.strokeStyle = 'rgba(0,55,110,.2)';
+    ctx.lineWidth   = 1;
+    var gs = Math.max(38, Math.floor(W / 13));
+    for (var gx = 0; gx < W; gx += gs) {
+      ctx.beginPath(); ctx.moveTo(gx, 0); ctx.lineTo(gx, H); ctx.stroke();
+    }
+    for (var gy = 0; gy < H; gy += gs) {
+      ctx.beginPath(); ctx.moveTo(0, gy); ctx.lineTo(W, gy); ctx.stroke();
+    }
+
+    if (pts.length < 2) return;
+
+    var PAD = { l: Math.max(30, W * 0.055), r: 14, t: 14, b: 22 };
+    var DW = W - PAD.l - PAD.r;
+    var DH = H - PAD.t - PAD.b;
+
+    var MX = Math.max(gMaxX, pts[pts.length - 1].x * 1.12);
+    var MY = Math.max(gMaxY, mult * 1.25);
+
+    function tx(x) { return PAD.l + (x / MX) * DW; }
+    function ty(y) { return H - PAD.b - ((y - 1) / (MY - 1)) * DH; }
+
+    var crashed = phase === 'crashed';
+
+    /* Fill gradient */
+    var grad = ctx.createLinearGradient(0, PAD.t, 0, H - PAD.b);
+    if (crashed) {
+      grad.addColorStop(0, 'rgba(255,45,85,.2)');
+      grad.addColorStop(1, 'rgba(255,45,85,0)');
+    } else {
+      grad.addColorStop(0, 'rgba(0,212,255,.16)');
+      grad.addColorStop(1, 'rgba(0,100,200,0)');
+    }
+    ctx.beginPath();
+    ctx.moveTo(tx(pts[0].x), H - PAD.b);
+    for (var i = 0; i < pts.length; i++) ctx.lineTo(tx(pts[i].x), ty(pts[i].y));
+    var lp = pts[pts.length - 1];
+    ctx.lineTo(tx(lp.x), H - PAD.b);
+    ctx.closePath();
+    ctx.fillStyle = grad;
+    ctx.fill();
+
+    /* Line */
+    ctx.beginPath();
+    for (var j = 0; j < pts.length; j++) {
+      var px = tx(pts[j].x), py = ty(pts[j].y);
+      if (j === 0) ctx.moveTo(px, py); else ctx.lineTo(px, py);
+    }
+    ctx.strokeStyle  = crashed ? '#ff2d55' : '#00d4ff';
+    ctx.lineWidth    = Math.max(1.8, W / 320);
+    ctx.shadowColor  = crashed ? '#ff2d55' : '#00d4ff';
+    ctx.shadowBlur   = 10;
+    ctx.stroke();
+    ctx.shadowBlur   = 0;
+
+    /* Tip glow + rocket */
+    var lx = tx(lp.x), ly = ty(lp.y);
+    if (phase === 'flying') {
+      var dg = ctx.createRadialGradient(lx, ly, 0, lx, ly, 15);
+      dg.addColorStop(0, 'rgba(0,255,247,.55)');
+      dg.addColorStop(1, 'rgba(0,255,247,0)');
+      ctx.beginPath(); ctx.arc(lx, ly, 15, 0, Math.PI * 2);
+      ctx.fillStyle = dg; ctx.fill();
+
+      ctx.beginPath(); ctx.arc(lx, ly, 3.5, 0, Math.PI * 2);
+      ctx.fillStyle = '#00fff7';
+      ctx.shadowColor = '#00fff7'; ctx.shadowBlur = 10; ctx.fill(); ctx.shadowBlur = 0;
+
+      /* Position rocket */
+      var rw  = rocket.getBoundingClientRect().width || 44;
+      var ang = getAngle();
+      rocket.style.display   = 'block';
+      rocket.style.left      = (lx - rw / 2) + 'px';
+      rocket.style.top       = (ly - rw * 0.88) + 'px';
+      rocket.style.transform = 'rotate(' + ang + 'deg)';
+    } else {
+      rocket.style.display = 'none';
+    }
+
+    /* Y-axis labels */
+    ctx.fillStyle = 'rgba(74,106,138,.55)';
+    ctx.font      = Math.max(8, Math.floor(W / 90)) + 'px Share Tech Mono,monospace';
+    ctx.textAlign = 'right';
+    [1, 1.5, 2, 3, 5, 10, 20, 50].forEach(function(v) {
+      if (v > MY) return;
+      var yy = ty(v);
+      ctx.fillText((v < 10 ? v.toFixed(1) : v) + '×', PAD.l - 4, yy + 3);
+      ctx.strokeStyle = 'rgba(0,100,150,.1)';
+      ctx.setLineDash([3, 5]);
+      ctx.beginPath(); ctx.moveTo(PAD.l, yy); ctx.lineTo(W - PAD.r, yy); ctx.stroke();
+      ctx.setLineDash([]);
+    });
+  }
+
+  function getAngle() {
+    if (pts.length < 2) return -45;
+    var a = pts[pts.length - 2], b = pts[pts.length - 1];
+    return Math.atan2(-(b.y - a.y), b.x - a.x) * 180 / Math.PI - 90;
+  }
+
+  /* ── Bots ───────────────────────────────────── */
+  var NAMES  = ['CryptoK','NightFly','Apex_X','StarWLK','ZeroG','NovaCrash','BitBlast','AstroVet','DarkMttr','PulsR','VoidX','NexusBot'];
+  var COLORS = ['#00d4ff','#ff2d55','#ffe600','#00ff88','#bf5fff','#ff6600','#00fff7','#ff69b4'];
+
+  function makeBots() {
+    bots = [];
+    var n = 4 + Math.floor(Math.random() * 9);
+    for (var i = 0; i < n; i++) {
+      bots.push({
+        name:   NAMES[i % NAMES.length] + (Math.random() > .5 ? Math.floor(Math.random() * 99) : ''),
+        amt:    (Math.random() * 95 + 5).toFixed(2),
+        color:  COLORS[i % COLORS.length],
+        coAt:   parseFloat((Math.random() * 4 + 1.1).toFixed(2)),
+        status: 'pending',
+        pnl:    null
+      });
+    }
+  }
+
+  function tickBots() {
+    bots.forEach(function(b) {
+      if (b.status === 'pending' && b.coAt <= mult) {
+        b.status = 'won';
+        b.pnl    = (b.amt * b.coAt).toFixed(2);
+      }
+    });
+  }
+
+  /* ── Render ─────────────────────────────────── */
+  function renderBets() {
+    var html = '';
+
+    if (betOn) {
+      var cls = 'brow you', res = '', rc = 'p';
+      if (cashedOut)           { cls = 'brow you won';  res = '+$' + (betAmt * cashMult).toFixed(2); rc = 'w'; }
+      else if (phase === 'crashed') { cls = 'brow you lost'; res = '-$' + betAmt.toFixed(2);           rc = 'l'; }
+      else                     { res = '$' + (betAmt * mult).toFixed(2); }
+      html += '<div class="' + cls + '">' +
+        '<div class="brow-left">' +
+          '<div class="av" style="background:rgba(0,212,255,.18);color:#00d4ff;border:1px solid rgba(0,212,255,.5)">YOU</div>' +
+          '<div><div class="b-name">You</div><div class="b-stake">$' + betAmt.toFixed(2) + '</div></div>' +
+        '</div>' +
+        '<div class="b-result ' + rc + '">' + res + '</div>' +
+      '</div>';
+    }
+
+    bots.forEach(function(b) {
+      var cls = 'brow', res = '', rc = 'p';
+      if (b.status === 'won')                            { cls = 'brow won';  res = '+$' + b.pnl;      rc = 'w'; }
+      else if (phase === 'crashed' && b.status === 'pending') { cls = 'brow lost'; res = '-$' + b.amt; rc = 'l'; }
+      else                                               { res = '$' + (b.amt * mult).toFixed(2); }
+      var ini = b.name.slice(0, 2).toUpperCase();
+      html += '<div class="' + cls + '">' +
+        '<div class="brow-left">' +
+          '<div class="av" style="background:' + b.color + '22;color:' + b.color + ';border:1px solid ' + b.color + '44">' + ini + '</div>' +
+          '<div><div class="b-name">' + b.name + '</div><div class="b-stake">$' + b.amt + '</div></div>' +
+        '</div>' +
+        '<div class="b-result ' + rc + '">' + res + '</div>' +
+      '</div>';
+    });
+
+    el('pane-bets').innerHTML = html;
+
+    var pool = bots.reduce(function(s, b) { return s + parseFloat(b.amt); }, 0) + (betOn ? betAmt : 0);
+    el('f-playing').textContent = bots.length + (betOn ? 1 : 0);
+    el('f-pool').textContent    = '$' + pool.toFixed(0);
+    el('f-round').textContent   = roundNum;
+  }
+
+  function renderHistory() {
+    el('hist-chips').innerHTML = history.slice(-25).reverse().map(function(v) {
+      var cls = v >= 10 ? 'chip chip-mg' : v >= 2 ? 'chip chip-hi' : 'chip chip-lo';
+      return '<span class="' + cls + '">' + v.toFixed(2) + '×</span>';
+    }).join('');
+  }
+
+  function renderStats() {
+    el('s-wag').textContent  = '$' + totWagered.toFixed(2);
+    el('s-won').textContent  = '$' + totWon.toFixed(2);
+    el('s-rnd').textContent  = totRounds;
+    el('s-best').textContent = bestMult > 0 ? bestMult.toFixed(2) + '×' : '—';
+    el('s-wr').textContent   = totRounds > 0 ? ((wins / totRounds) * 100).toFixed(1) + '%' : '—';
+    el('bal-display').textContent = '$' + balance.toFixed(2);
+  }
+
+  /* ── Multiplier display ─────────────────────── */
+  function updateMultDisplay() {
+    el('mult-val').textContent = mult.toFixed(2) + 'x';
+    if (phase === 'waiting') {
+      el('mult-val').className = '';
+      el('mult-sub').textContent = betOn ? '✓ BET PLACED — READY' : 'WAITING FOR BETS';
+    } else if (phase === 'flying') {
+      el('mult-val').className = '';
+      el('mult-sub').textContent = betOn && !cashedOut ? '— FLYING —' : '— IN FLIGHT —';
+    }
+  }
+
+  /* ── Button ─────────────────────────────────── */
+  function setButton(mode, subText) {
+    var btn = el('act-btn');
+    btn.className = 'mode-' + mode;
+    btn.disabled  = (mode !== 'idle' && mode !== 'cashout');
+
+    var labels = {
+      idle:    'PLACE BET',
+      queued:  '✓ BET QUEUED',
+      cashout: '⚡ CASH OUT',
+      cashed:  '✓ CASHED OUT',
+      waiting: 'IN FLIGHT',
+      crashed: '✕ CRASHED'
+    };
+    el('btn-main').textContent = labels[mode] || 'PLACE BET';
+    el('btn-sub').textContent  = subText || '';
+  }
+
+  /* ── Toast ──────────────────────────────────── */
+  var toastTimer = null;
+  function showToast(msg, type) {
+    var t = el('toast');
+    t.textContent = msg;
+    t.className   = 'show ' + type;
+    clearTimeout(toastTimer);
+    toastTimer = setTimeout(function() { t.className = ''; }, 3500);
+  }
+
+  /* ── Game Phases ────────────────────────────── */
+  function startCountdown() {
+    phase     = 'waiting';
+    mult      = 1.00;
+    betOn     = false;
+    cashedOut = false;
+    cashMult  = 0;
+    tickCount = 0;
+    cdLeft    = CFG.CD_SECS;
+    seed      = makeSeed();
+    crashPt   = calcCrash(seed);
+    pts       = []; gMaxX = 100; gMaxY = 3;
+
+    el('cd-overlay').classList.remove('gone');
+    el('cd-num').textContent = cdLeft;
+    el('seed-val').textContent = seed.slice(0, 12) + '…';
+
+    updateMultDisplay();
+    setButton('idle', 'Click to enter this round');
+    makeBots();
+    renderBets();
+    drawCanvas();
+
+    cdTmr = setInterval(function() {
+      cdLeft--;
+      el('cd-num').textContent = cdLeft;
+      if (cdLeft <= 0) {
+        clearInterval(cdTmr);
+        startFlight();
+      }
+    }, 1000);
+  }
+
+  function startFlight() {
+    phase = 'flying';
+    roundNum++;
+    el('cd-overlay').classList.add('gone');
+    updateMultDisplay();
+    setButton(betOn ? 'cashout' : 'waiting', betOn ? 'Tap to cash out!' : 'Join next round');
+    tickTmr = setInterval(tick, CFG.TICK);
+  }
+
+  function tick() {
+    tickCount++;
+    mult = tickToMult(tickCount);
+
+    /* Auto cashout */
+    if (betOn && !cashedOut && autoMult && mult >= autoMult) {
+      doCashout(); return;
+    }
+
+    tickBots();
+
+    /* Crash check */
+    if (mult >= crashPt) {
+      doCrash(); return;
+    }
+
+    pts.push({ x: tickCount, y: mult });
+    gMaxX = Math.max(gMaxX, tickCount * 1.1);
+    gMaxY = Math.max(gMaxY, mult * 1.2);
+
+    updateMultDisplay();
+    drawCanvas();
+    renderBets();
+
+    if (betOn && !cashedOut) {
+      el('btn-sub').textContent = '$' + (betAmt * mult).toFixed(2) + ' — Tap now!';
+    }
+  }
+
+  function doCrash() {
+    clearInterval(tickTmr);
+    phase = 'crashed';
+    mult  = crashPt;
+    pts.push({ x: tickCount, y: crashPt });
+
+    el('mult-val').className = 'state-crashed';
+    el('mult-sub').textContent = 'CRASHED AT ' + crashPt.toFixed(2) + '×';
+
+    var f = el('flash');
+    f.classList.remove('boom');
+    void f.offsetWidth; /* reflow to restart animation */
+    f.classList.add('boom');
+
+    if (betOn && !cashedOut) {
+      totWagered += betAmt;
+      totRounds++;
+      showToast('CRASHED — Lost $' + betAmt.toFixed(2), 'lose');
+    }
+
+    setButton('crashed', 'Restarting…');
+    history.push(crashPt);
+    renderHistory();
+    renderBets();
+    renderStats();
+    drawCanvas();
+
+    setTimeout(startCountdown, 3000);
+  }
+
+  function doCashout() {
+    if (!betOn || cashedOut || phase !== 'flying') return;
+    cashedOut = true;
+    cashMult  = mult;
+
+    var payout = betAmt * cashMult;
+    var profit = payout - betAmt;
+    balance    += profit;
+    totWagered += betAmt;
+    totWon     += payout;
+    totRounds++;
+    wins++;
+    if (cashMult > bestMult) bestMult = cashMult;
+
+    el('mult-val').className = 'state-cashed';
+    setButton('cashed', cashMult.toFixed(2) + '× secured!');
+    showToast('CASHED OUT @ ' + cashMult.toFixed(2) + '× — +$' + profit.toFixed(2), 'win');
+    renderStats();
+    renderBets();
+  }
+
+  /* ── Public API ─────────────────────────────── */
+  function action() {
+    /* Cash out during flight */
+    if (phase === 'flying' && betOn && !cashedOut) {
+      doCashout(); return;
+    }
+    /* Place bet during countdown */
+    if (phase === 'waiting' && !betOn) {
+      var v = parseFloat(el('bet-input').value);
+      if (isNaN(v) || v < 1)  { showToast('Enter a valid bet (min $1)', 'lose'); return; }
+      if (v > balance)         { showToast('Insufficient balance!',       'lose'); return; }
+      betAmt   = v;
+      autoMult = parseFloat(el('auto-input').value) || null;
+      betOn    = true;
+      balance -= v;
+      renderStats();
+      setButton('queued', 'Launching soon…');
+      updateMultDisplay();
+      renderBets();
+    }
+  }
+
+  function setAmount(v) { el('bet-input').value = v; }
+  function setAuto(v)   { el('auto-input').value = v; }
+
+  /* ── Init ───────────────────────────────────── */
+  (function init() {
+    /* Resize canvas whenever box changes size */
+    if (window.ResizeObserver) {
+      new ResizeObserver(function() { resizeCanvas(); drawCanvas(); }).observe(box);
+    } else {
+      window.addEventListener('resize', function() { resizeCanvas(); drawCanvas(); });
+    }
+    resizeCanvas();
+
+    /* ESC closes sidebar */
+    document.addEventListener('keydown', function(e) {
+      if (e.key === 'Escape') {
+        document.getElementById('sidebar').classList.remove('open');
+        document.getElementById('sb-backdrop').classList.remove('show');
+      }
+    });
+
+    /* Pre-fill history */
+    for (var i = 0; i < 18; i++) history.push(calcCrash(makeSeed()));
+    renderHistory();
+    renderStats();
+    startCountdown();
+  })();
+
+  return Object.freeze({ action: action, setAmount: setAmount, setAuto: setAuto });
+
+})(); // end Game IIFE
+</script>
+</body>
+</html>
